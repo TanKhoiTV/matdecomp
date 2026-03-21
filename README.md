@@ -179,7 +179,7 @@ The `-qh` flag renders at 1080p. Output goes to `media/videos/`. The pre-rendere
 | Lê Thành Đạt | Scrum Master | Sprint ceremonies, retros, report Prism → Git commits, diagonalization skeleton |
 | Cao Việt Cường | Developer A | `gaussian_eliminate`, `back_substitution`, `rank_and_basis` |
 | Nguyễn Phú Đạt | Developer B | `determinant`, `inverse`, benchmark harness |
-| [Name] | Developer C | QR decomposition (full implementation) |
+| Trần Văn Tấn Khôi | Developer C | QR decomposition (full implementation) |
 | Mai Phan Nhật Hoàng | Developer D | Diagonalization (complete), report sections |
 | Lê Thành Đạt | Developer E | All Manim scenes, narration script, audio recording and sync, video export |
 
