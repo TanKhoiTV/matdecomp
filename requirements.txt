@@ -1,0 +1,27 @@
+# matdecomp — dependencies
+# Install with: pip install -r requirements.txt
+# Python 3.10 to 3.13 required
+
+# ── Core scientific computing ──────────────────────────────────────────────────
+# Used for verification and comparison only — not for algorithm implementation
+numpy==2.2.4
+scipy==1.15.2
+sympy==1.13.3
+
+# ── Visualization ─────────────────────────────────────────────────────────────
+matplotlib==3.10.1
+
+# ── Manim ─────────────────────────────────────────────────────────────────────
+# Manim Community — stable release
+# Windows users: see https://docs.manim.community/en/stable/installation/windows.html
+# WSL2 users: standard pip install works; ensure FFmpeg is installed via apt
+manim==0.20.1
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+jupyter==1.1.1
+notebook==7.3.3
+ipykernel==6.29.5
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+# pathlib is part of Python standard library — no install needed
+tqdm==4.67.1
