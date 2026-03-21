@@ -180,7 +180,7 @@ The `-qh` flag renders at 1080p. Output goes to `media/videos/`. The pre-rendere
 | [Name] | Developer A | `gaussian_eliminate`, `back_substitution`, `rank_and_basis` |
 | [Name] | Developer B | `determinant`, `inverse`, benchmark harness |
 | [Name] | Developer C | QR decomposition (full implementation) |
-| [Name] | Developer D | Diagonalization (complete), report sections |
+| Mai Phan Nhật Hoàng | Developer D | Diagonalization (complete), report sections |
 | Lê Thành Đạt | Developer E | All Manim scenes, narration script, audio recording and sync, video export |
 
 *Fill in names and student IDs before submission.*
