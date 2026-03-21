@@ -6,16 +6,49 @@ This document covers everything you need to work on this project without breakin
 
 ## Environment Setup
 
-### 1. Clone the repo
+### 1. Check your Python version
+
+Manim v0.20.1 supports Python 3.9–3.13. Run:
+
+```bash
+python --version
+```
+
+Any version from 3.10 to 3.13 is fine. If you are below 3.10, upgrade before continuing.
+
+> **Anaconda users:** do not use an Anaconda environment for this project. Anaconda ships its own Cairo library that conflicts with the version pycairo that Manim requires. Use plain Python with a venv instead (see step 3).
+
+### 2. Clone the repo
 
 ```bash
 git clone https://github.com/TanKhoiTV/matdecomp.git
 cd matdecomp
 ```
+### 3. Create and activate a virtual environment
 
-### 2. Windows only — set line endings
+Always work inside a venv — keeps project dependencies isolated from your system Python.
 
-Run this once after cloning:
+```bash
+python -m venv .venv
+```
+
+**Activate — Windows:**
+```bash
+.venv\Scripts\activate
+```
+
+**Activate — WSL2 / Linux:**
+```bash
+source .venv/bin/activate
+```
+
+You should see `(.venv)` in your terminal prompt. Run all subsequent commands with the venv active.
+
+> The `.venv` folder is already in `.gitignore` — do not commit it.
+
+### 4. Windows only — set line endings
+
+Run this once after cloning, outside or inside the venv:
 
 ```bash
 git config --global core.autocrlf false
@@ -23,13 +56,19 @@ git config --global core.autocrlf false
 
 Line endings are normalized to LF via `.gitattributes`. This config prevents Windows from converting them back to CRLF on your machine.
 
-### 3. Install dependencies
+### 5. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Verify Manim
+> **WSL2 users:** if Manim fails to install, ensure FFmpeg is installed first:
+> ```bash
+> sudo apt update && sudo apt install ffmpeg
+> ```
+> Then re-run `pip install -r requirements.txt`.
+
+### 6. Verify Manim
 
 ```bash
 manim --version
