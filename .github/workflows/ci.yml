@@ -151,3 +151,27 @@ jobs:
             -e "linsolve(" \
             part1/ part2/ part3/ \
             --include="*.py"
+            
+      - name: Install mypy
+        run: pip install mypy
+      
+      # - name: Type check — Part 1
+      #   run: |
+      #     mypy part1/gaussian.py \
+      #          part1/determinant.py \
+      #          part1/inverse.py \
+      #          part1/rank_basis.py \
+      #     --config-file mypy.ini
+
+      # - name: Type check — Part 2
+      #   run: |
+      #     mypy part2/decomposition.py \
+      #          part2/diagonalization.py \
+      #          part2/theme.py \
+      #     --config-file mypy.ini
+
+      # - name: Type check — Part 3
+      #   run: |
+      #     mypy part3/solvers.py \
+      #          part3/benchmark.py \
+      #     --config-file mypy.ini
