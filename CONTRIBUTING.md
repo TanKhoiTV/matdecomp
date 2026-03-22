@@ -21,9 +21,16 @@ Any version from 3.10 to 3.13 is fine. If you are below 3.10, upgrade before con
 ### 2. Clone the repo
 
 ```bash
-git clone https://github.com/TanKhoiTV/matdecomp.git
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/TanKhoiTV/matdecomp.git
 cd matdecomp
 ```
+
+`GIT_LFS_SKIP_SMUDGE=1` is used to skip downloading the LFS demo video file, which can be heavy. If you want to download the video to view it locally:
+
+```bash
+git lfs pull
+```
+
 ### 3. Create and activate a virtual environment
 
 Always work inside a venv — keeps project dependencies isolated from your system Python.
