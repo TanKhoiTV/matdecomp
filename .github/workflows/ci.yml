@@ -175,3 +175,13 @@ jobs:
       #     mypy part3/solvers.py \
       #          part3/benchmark.py \
       #     --config-file mypy.ini
+
+      - name: Check branch name
+        if: github.event_name == 'pull_request'
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          if ! echo "$BRANCH" | grep -qE '^(feat|fix|docs|test|refactor|chore)/.+'; then
+            echo "Branch name '$BRANCH' does not follow naming convention."
+            echo "Expected: feat/, fix/, docs/, test/, refactor/, or chore/"
+            exit 1
+          fi
