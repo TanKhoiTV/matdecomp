@@ -26,3 +26,5 @@ ipykernel==6.29.5
 # ── Utilities ─────────────────────────────────────────────────────────────────
 # pathlib is part of Python standard library — no install needed
 tqdm==4.67.1
+pre-commit==4.2.0
+mypy==1.15.0
