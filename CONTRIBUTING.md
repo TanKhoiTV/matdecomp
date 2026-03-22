@@ -78,7 +78,7 @@ manim --version
 > ```bash
 > sudo apt update && sudo apt install ffmpeg
 > ```
-> Then re-run `pip install -r requirements.txt`.
+> Then reinstall Manim.
 
 ---
 
