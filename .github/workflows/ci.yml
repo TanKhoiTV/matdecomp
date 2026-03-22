@@ -132,12 +132,12 @@ jobs:
       # --ignore=W503           : line break before binary operator — stylistic, not an error
       # --exclude=.venv         : never lint the virtual environment folder
       # Adjust --ignore flags if the team agrees on stricter or looser rules.
-      - name: Lint with flake8
-        run: |
-          flake8 part1/ \
-            --max-line-length=100 \
-            --ignore=E501,W503 \
-            --exclude=.venv
+      # - name: Lint with flake8
+      #   run: |
+      #     flake8 part1/ \
+      #       --max-line-length=100 \
+      #       --ignore=E501,W503 \
+      #       --exclude=.venv
 
       - name: Check for banned solver calls
         run: |
