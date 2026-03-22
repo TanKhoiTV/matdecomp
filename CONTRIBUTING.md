@@ -60,6 +60,18 @@ Line endings are normalized to LF via `.gitattributes`. This config prevents Win
 
 ```bash
 pip install -r requirements.txt
+pre-commit install --hook-type commit-msg
+```
+
+### 6. Installing Manim (optional)
+
+To install Manim, please see its wiki page.
+
+To verify if Manim is installed with the correct version:
+
+```bash
+manim --version
+# Expected: Manim Community v0.20.1
 ```
 
 > **WSL2 users:** if Manim fails to install, ensure FFmpeg is installed first:
@@ -67,13 +79,6 @@ pip install -r requirements.txt
 > sudo apt update && sudo apt install ffmpeg
 > ```
 > Then re-run `pip install -r requirements.txt`.
-
-### 6. Verify Manim
-
-```bash
-manim --version
-# Expected: Manim Community v0.20.1
-```
 
 ---
 
