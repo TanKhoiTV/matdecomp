@@ -177,7 +177,7 @@ jobs:
       #     --config-file mypy.ini
 
       - name: Check branch name
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.head_ref != 'dev'
         run: |
           BRANCH="${{ github.head_ref }}"
           if ! echo "$BRANCH" | grep -qE '^(feat|fix|docs|test|refactor|chore)/.+'; then
