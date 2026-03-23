@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+import sys
+import re
+
+PATTERN = re.compile(
+    r'^(feat|fix|docs|test|refactor|chore)(\(.+\))?: .{1,100}$'
+)
+
+msg_file = sys.argv[1]
+with open(msg_file, "r") as f:
+    message = f.read().strip().splitlines()[0]
+
+# Skip merge commits
+if message.startswith("Merge"):
+    sys.exit(0)
+
+if not PATTERN.match(message):
+    print("\n  Commit rejected — message does not follow conventional format.")
+    print(f"  Got:      {message}")
+    print("  Expected: type: short description")
+    print("  Types:    feat, fix, docs, test, refactor, chore")
+    print("  Example:  feat: add partial pivoting to gaussian_eliminate\n")
+    sys.exit(1)
+
+sys.exit(0)
