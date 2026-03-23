@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: commit-msg
+        name: Conventional commit message
+        language: python
+        entry: .github/hooks/commit-msg
+        stages: [commit-msg]
+        types: [python]
