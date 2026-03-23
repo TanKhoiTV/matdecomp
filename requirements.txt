@@ -13,9 +13,10 @@ matplotlib==3.10.1
 
 # ── Manim ─────────────────────────────────────────────────────────────────────
 # Manim Community — stable release
+# Note: removed from dependency list as only those who work with Manim need to install
 # Windows users: see https://docs.manim.community/en/stable/installation/windows.html
 # WSL2 users: standard pip install works; ensure FFmpeg is installed via apt
-manim==0.20.1
+# manim==0.20.1
 
 # ── Jupyter ───────────────────────────────────────────────────────────────────
 jupyter==1.1.1
@@ -25,3 +26,5 @@ ipykernel==6.29.5
 # ── Utilities ─────────────────────────────────────────────────────────────────
 # pathlib is part of Python standard library — no install needed
 tqdm==4.67.1
+pre-commit==4.2.0
+mypy==1.15.0
