@@ -107,12 +107,12 @@ jobs:
       # Add new .py files here as they are created across sprints.
       # A missing file here will cause a FileNotFoundError, not a graceful skip —
       # comment out files that do not exist yet in early sprints.
-      # - name: Check syntax — Part 1
-      #   run: |
+      - name: Check syntax — Part 1
+        run: |
       #     python -m py_compile part1/gaussian.py
       #     python -m py_compile part1/determinant.py
       #     python -m py_compile part1/inverse.py
-      #     python -m py_compile part1/rank_basis.py
+           python -m py_compile part1/rank_basis.py
 
       # Uncomment as Part 2 and Part 3 files are added
       # - name: Check syntax — Part 2
@@ -132,12 +132,12 @@ jobs:
       # --ignore=W503           : line break before binary operator — stylistic, not an error
       # --exclude=.venv         : never lint the virtual environment folder
       # Adjust --ignore flags if the team agrees on stricter or looser rules.
-      # - name: Lint with flake8
-      #   run: |
-      #     flake8 part1/ \
-      #       --max-line-length=100 \
-      #       --ignore=E501,W503 \
-      #       --exclude=.venv
+      - name: Lint with flake8
+        run: |
+           flake8 part1/ \
+             --max-line-length=100 \
+             --ignore=E501,W503 \
+             --exclude=.venv
 
       - name: Check for banned solver calls
         run: |
@@ -155,13 +155,13 @@ jobs:
       - name: Install mypy
         run: pip install mypy
       
-      # - name: Type check — Part 1
-      #   run: |
+      - name: Type check — Part 1
+        run: |
       #     mypy part1/gaussian.py \
       #          part1/determinant.py \
       #          part1/inverse.py \
-      #          part1/rank_basis.py \
-      #     --config-file mypy.ini
+            mypy part1/rank_basis.py \
+            --config-file mypy.ini
 
       # - name: Type check — Part 2
       #   run: |
