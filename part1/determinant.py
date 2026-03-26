@@ -1,4 +1,4 @@
-def determinant(A):
+def determinant(A: list[list[float | int]]) -> float:
     """
     Tính định thức của ma trận vuông A bằng phép khử Gauss.
     Trả về 0.0 nếu ma trận suy biến.
