@@ -1,4 +1,6 @@
-def diagonalize(A):
+from typing import List, Tuple
+
+def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
     Chéo hóa ma trận vuông A sao cho:
         A = P D P^-1
@@ -28,4 +30,8 @@ def diagonalize(A):
 
     # Chưa cài đặt (sẽ hoàn thiện ở Sprint 2)
 
-    return None, None, None 
+    P: List[List[float]] = [[]]
+    D: List[List[float]] = [[]]
+    P_inv: List[List[float]] = [[]]
+    
+    return P, D, P_inv
