@@ -30,4 +30,8 @@ def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[floa
 
     # Chưa cài đặt (sẽ hoàn thiện ở Sprint 2)
 
-    return List[List[float]], List[List[float]], List[List[float]]
+    P: List[List[float]] = [[]]
+    D: List[List[float]] = [[]]
+    P_inv: List[List[float]] = [[]]
+    
+    return P, D, P_inv
