@@ -4,7 +4,8 @@ from rank_basis import rank_and_basis
 
 def verify_null_space(A, ns):
     """Kiểm tra Av = 0."""
-    if not ns: return True
+    if not ns:
+        return True
     A_np = np.array(A)
     for v in ns:
         if not np.allclose(A_np @ np.array(v), 0, atol=1e-10):
