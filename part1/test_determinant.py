@@ -26,7 +26,7 @@ def run_tests():
     A_negative = [[0, 1], [1, 0]]
     assert is_close(determinant(A_negative), np.linalg.det(A_negative)), "Lỗi: Test ma trận định thức âm thất bại!"
     
-    print("Tuyệt vời! Toàn bộ 5 test cases đã PASS.")
+    print("Toàn bộ 5 test cases đã PASS.")
 
 if __name__ == "__main__":
     run_tests()
