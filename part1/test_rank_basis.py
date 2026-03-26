@@ -1,64 +1,46 @@
-import numpy as np
+import unittest
 from rank_basis import rank_and_basis
 
 
-def verify_null_space(A, ns):
-    """Kiểm tra Av = 0."""
-    if not ns:
-        return True
-    A_np = np.array(A)
-    for v in ns:
-        if not np.allclose(A_np @ np.array(v), 0, atol=1e-10):
-            return False
-    return True
+class TestRankBasis(unittest.TestCase):
 
+    def test_full_rank_square(self):
+        """Case 1: Full rank square matrix (Identity)"""
+        A = [[1.0, 0.0], [0.0, 1.0]]
+        rank, col, row, null = rank_and_basis(A)
+        self.assertEqual(rank, 2)
+        self.assertEqual(len(null), 0)
 
-def run_tests():
-    # --- TEST 1: Full Rank Square ---
-    try:
-        A1 = [[1, 2], [3, 4]]
-        r, cs, rs, ns = rank_and_basis(A1)
-        if r == 2 and len(ns) == 0:
-            print("Test 1 (Full Rank Square): PASSED")
-    except Exception:
-        print("Test 1: FAILED")
+    def test_rank_deficient_square(self):
+        """Case 2: Rank-deficient square matrix"""
+        A = [[1.0, 2.0], [2.0, 4.0]]
+        rank, col, row, null = rank_and_basis(A)
+        self.assertEqual(rank, 1)
+        self.assertEqual(len(null), 1)
+        # Check if null vector satisfies Ax=0
+        self.assertAlmostEqual(null[0][0] + 2*null[0][1], 0)
 
-    # --- TEST 2: Rank-Deficient Square ---
-    try:
-        A2 = [[1, 2, 3], [2, 4, 6], [1, 0, 1]]
-        r, cs, rs, ns = rank_and_basis(A2)
-        if r == 2 and len(ns) == 1 and verify_null_space(A2, ns):
-            print("Test 2 (Rank-Deficient Square): PASSED")
-    except Exception:
-        print("Test 2: FAILED")
+    def test_rectangular_wide(self):
+        """Case 3: Rectangular (more columns than rows)"""
+        A = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+        rank, col, row, null = rank_and_basis(A)
+        self.assertEqual(rank, 2)
+        self.assertEqual(len(null), 1) # n=3, r=2 => n-r=1
 
-    # --- TEST 3: Rectangular Wide ---
-    try:
-        A3 = [[1, 2, 1, 1], [2, 4, 2, 2], [3, 6, 3, 3]]
-        r, cs, rs, ns = rank_and_basis(A3)
-        if r == 1 and len(ns) == 3 and verify_null_space(A3, ns):
-            print("Test 3 (Rectangular Wide): PASSED")
-    except Exception:
-        print("Test 3: FAILED")
+    def test_rectangular_tall(self):
+        """Case 4: Rectangular (more rows than columns)"""
+        A = [[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
+        rank, col, row, null = rank_and_basis(A)
+        self.assertEqual(rank, 2)
+        self.assertEqual(len(null), 0)
 
-    # --- TEST 4: Rectangular Tall ---
-    try:
-        A4 = [[1, 0], [0, 1], [1, 1]]
-        r, cs, rs, ns = rank_and_basis(A4)
-        if r == 2 and len(ns) == 0:
-            print("Test 4 (Rectangular Tall): PASSED")
-    except Exception:
-        print("Test 4: FAILED")
-
-    # --- TEST 5: Zero Matrix ---
-    try:
-        A5 = [[0, 0, 0], [0, 0, 0]]
-        r, cs, rs, ns = rank_and_basis(A5)
-        if r == 0 and len(ns) == 3 and verify_null_space(A5, ns):
-            print("Test 5 (Zero Matrix): PASSED")
-    except Exception:
-        print("Test 5: FAILED")
-
+    def test_zero_matrix(self):
+        """Case 5: Zero matrix"""
+        A = [[0.0, 0.0], [0.0, 0.0]]
+        rank, col, row, null = rank_and_basis(A)
+        self.assertEqual(rank, 0)
+        self.assertEqual(len(null), 2)
+        self.assertEqual(len(col), 0)
 
 if __name__ == "__main__":
-    run_tests()
+    unittest.main()
