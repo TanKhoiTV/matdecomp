@@ -1,6 +1,7 @@
 import numpy as np
 from rank_basis import rank_and_basis
 
+
 def verify_null_space(A, ns):
     """Kiểm tra Av = 0."""
     if not ns: return True
@@ -10,6 +11,7 @@ def verify_null_space(A, ns):
             return False
     return True
 
+
 def run_tests():
     # --- TEST 1: Full Rank Square ---
     try:
@@ -17,7 +19,8 @@ def run_tests():
         r, cs, rs, ns = rank_and_basis(A1)
         if r == 2 and len(ns) == 0:
             print("Test 1 (Full Rank Square): PASSED")
-    except Exception: print("Test 1: FAILED")
+    except Exception:
+        print("Test 1: FAILED")
 
     # --- TEST 2: Rank-Deficient Square ---
     try:
@@ -25,7 +28,8 @@ def run_tests():
         r, cs, rs, ns = rank_and_basis(A2)
         if r == 2 and len(ns) == 1 and verify_null_space(A2, ns):
             print("Test 2 (Rank-Deficient Square): PASSED")
-    except Exception: print("Test 2: FAILED")
+    except Exception:
+        print("Test 2: FAILED")
 
     # --- TEST 3: Rectangular Wide ---
     try:
@@ -33,7 +37,8 @@ def run_tests():
         r, cs, rs, ns = rank_and_basis(A3)
         if r == 1 and len(ns) == 3 and verify_null_space(A3, ns):
             print("Test 3 (Rectangular Wide): PASSED")
-    except Exception: print("Test 3: FAILED")
+    except Exception:
+        print("Test 3: FAILED")
 
     # --- TEST 4: Rectangular Tall ---
     try:
@@ -41,7 +46,8 @@ def run_tests():
         r, cs, rs, ns = rank_and_basis(A4)
         if r == 2 and len(ns) == 0:
             print("Test 4 (Rectangular Tall): PASSED")
-    except Exception: print("Test 4: FAILED")
+    except Exception:
+        print("Test 4: FAILED")
 
     # --- TEST 5: Zero Matrix ---
     try:
@@ -49,7 +55,9 @@ def run_tests():
         r, cs, rs, ns = rank_and_basis(A5)
         if r == 0 and len(ns) == 3 and verify_null_space(A5, ns):
             print("Test 5 (Zero Matrix): PASSED")
-    except Exception: print("Test 5: FAILED")
+    except Exception:
+        print("Test 5: FAILED")
+
 
 if __name__ == "__main__":
     run_tests()
