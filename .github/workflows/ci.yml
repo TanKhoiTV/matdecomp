@@ -112,7 +112,7 @@ jobs:
            python -m py_compile part1/gaussian.py
       #     python -m py_compile part1/determinant.py
       #     python -m py_compile part1/inverse.py
-      #     python -m py_compile part1/rank_basis.py
+           python -m py_compile part1/rank_basis.py
 
       # Uncomment as Part 2 and Part 3 files are added
       # - name: Check syntax — Part 2
@@ -160,7 +160,7 @@ jobs:
            mypy part1/gaussian.py \
       #          part1/determinant.py \
       #          part1/inverse.py \
-      #          part1/rank_basis.py \
+                part1/rank_basis.py \
            --config-file mypy.ini
 
       # - name: Type check — Part 2
