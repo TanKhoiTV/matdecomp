@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], : List[List[float]]]:
+def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
     Chéo hóa ma trận vuông A sao cho:
         A = P D P^-1
@@ -30,4 +30,4 @@ def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[floa
 
     # Chưa cài đặt (sẽ hoàn thiện ở Sprint 2)
 
-    pass
+    return List[List[float]], List[List[float]], List[List[float]]
