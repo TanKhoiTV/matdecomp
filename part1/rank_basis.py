@@ -19,7 +19,7 @@ def compute_rref(A: Any, eps: float = 1e-12) -> Tuple[np.ndarray, List[int]]:
             continue
 
         # 2. Đổi hàng
-        M[[pivot_row, max_row]] = M[[max_row, pivot_row]]
+        M[[int(pivot_row), int(max_row)]] = M[[int(max_row), int(pivot_row)]]
         pivot_cols.append(j)
 
         # 3. Chuẩn hóa hàng pivot về 1
