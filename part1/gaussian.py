@@ -1,6 +1,7 @@
 # from pathlib import Path
 from typing import List, Tuple
 
+
 def back_substitution(U: List[List[float]], c: List[float], eps: float = 1e-12) -> List[float]:
     """
     Solve upper-triangular system Ux = c via backward substitution.
