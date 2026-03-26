@@ -1,7 +1,7 @@
 # from pathlib import Path
+from typing import List, Tuple
 
-
-def back_substitution(U, c, eps=1e-12):
+def back_substitution(U: List[List[float]], c: List[float], eps: float = 1e-12) -> List[float]:
     """
     Solve upper-triangular system Ux = c via backward substitution.
 
@@ -30,7 +30,7 @@ def back_substitution(U, c, eps=1e-12):
     return x
 
 
-def gaussian_eliminate(A, b, eps=1e-12):
+def gaussian_eliminate(A: List[List[float]], b: List[float], eps: float = 1e-12) -> Tuple[List[List[float]], List[float], int]:
     """
     Solve Ax = b via Gaussian elimination with partial pivoting.
 
