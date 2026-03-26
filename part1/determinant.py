@@ -3,7 +3,7 @@ from typing import Sequence
 
 def determinant(A: Sequence[Sequence[float | int]]) -> float:
     """
-    Tính định thức của ma trận vuông A bằng phép khử Gauss.
+    Tính định thức của ma trận vuông A bằng phép khử Gauss (Pure Python).
     Trả về 0.0 nếu ma trận suy biến.
     """
     n = len(A)
@@ -11,8 +11,8 @@ def determinant(A: Sequence[Sequence[float | int]]) -> float:
         if len(row) != n:
             raise ValueError("Ma trận phải là ma trận vuông.")
 
-    mat = [[float(val) for val in row] for row in A]
-    swap_count = 0
+    mat: list[list[float]] = [[float(val) for val in row] for row in A]
+    swap_count: int = 0
 
     for i in range(n):
         pivot_row = i
@@ -34,8 +34,8 @@ def determinant(A: Sequence[Sequence[float | int]]) -> float:
             for k in range(i, n):
                 mat[j][k] -= factor * mat[i][k]
 
-    det_val = 1.0
+    det_val: float = 1.0
     for i in range(n):
         det_val *= mat[i][i]
 
-    return ((-1) ** swap_count) * det_val
+    return float(((-1) ** swap_count) * det_val)
