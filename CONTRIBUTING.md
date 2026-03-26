@@ -21,11 +21,11 @@ Any version from 3.10 to 3.13 is fine. If you are below 3.10, upgrade before con
 ### 2. Clone the repo
 
 ```bash
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/TanKhoiTV/matdecomp.git
+git -c filter.lfs.smudge=1 clone https://github.com/TanKhoiTV/matdecomp.git
 cd matdecomp
 ```
 
-`GIT_LFS_SKIP_SMUDGE=1` is used to skip downloading the LFS demo video file, which can be heavy. If you want to download the video to view it locally:
+`filter.lfs.smudge=1` is used to skip downloading the LFS demo video file, which can be heavy. If you want to download the video to view it locally:
 
 ```bash
 git lfs pull
@@ -86,6 +86,73 @@ manim --version
 > sudo apt update && sudo apt install ffmpeg
 > ```
 > Then reinstall Manim.
+
+### 7. Verify dependencies
+
+Run either 
+
+```bash
+pip list
+```
+
+or 
+
+```bash
+pip freeze
+```
+
+to view the installed dependencies inside `venv`.
+
+### 8. Sign your Git commits
+
+`main` and `dev` branch have protection rules against unsigned/unverified commits. To verify, run the following:
+
+For Unix/WSL2:
+
+```bash
+git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/id_ed25519.pub
+git config --global commit.gpgsign true
+```
+
+Replace `id_ed25519.pub` with whatever your actual public key filename is. To check:
+
+```bash
+ls ~/.ssh/*.pub
+```
+
+For Windows (PowerShell):
+
+```PowerShell
+git config --global gpg.format ssh
+git config --global user.signingkey "$HOME/.ssh/id_ed25519.pub"
+git config --global commit.gpgsign true
+```
+
+To check for the location and the filename of the key:
+
+```PowerShell
+ls $HOME\.ssh\
+```
+
+If you don't have an Ed25519 key generated, run (both Linux and Windows):
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+```
+
+replacing "your_email@example.com" with your email.
+
+Finally, tell GitHub about your signing key.
+
+Go to `GitHub -> Settings -> SSH and GPG keys -> New SSH key (Signing Key)`. Paste the public key.
+
+**Troubleshooting**: If you are on Windows and OpenSSH Agent service hasn't run yet, try the following:
+
+```PowerShell
+Set-Service -Name ssh-agent -StartupType Automatic
+Start-Service ssh-agent
+ssh-add $HOME/.ssh/id_ed25519
+```
 
 ---
 
