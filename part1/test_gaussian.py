@@ -50,4 +50,3 @@ def test_gaussian_all_cases():
 
 if __name__ == "__main__":
     test_gaussian_all_cases()
-
