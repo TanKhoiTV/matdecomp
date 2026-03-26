@@ -158,10 +158,10 @@ jobs:
       - name: Type check — Part 1
         run: |
            mypy part1/gaussian.py \
+           --config-file mypy.ini
       #          part1/determinant.py \
       #          part1/inverse.py \
       #          part1/rank_basis.py \
-           --config-file mypy.ini
 
       # - name: Type check — Part 2
       #   run: |

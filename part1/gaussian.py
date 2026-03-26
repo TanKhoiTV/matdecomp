@@ -1,4 +1,4 @@
-#from pathlib import Path
+# from pathlib import Path
 
 
 def back_substitution(U, c, eps=1e-12):
@@ -85,5 +85,4 @@ def gaussian_eliminate(A, b, eps=1e-12):
     x = back_substitution(U, c, eps)
 
     return M, x, swaps
-
 
