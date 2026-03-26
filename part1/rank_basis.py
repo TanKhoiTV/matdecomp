@@ -1,7 +1,8 @@
 import numpy as np
+from typing import List, Tuple, Any
 
 
-def compute_rref(A, eps=1e-12):
+def compute_rref(A: Any, eps: float = 1e-12) -> Tuple[np.ndarray, List[int]]:
     """Đưa ma trận A về dạng Bậc thang rút gọn (RREF) dùng khử toàn phần."""
     M = np.array(A, dtype=float).copy()
     rows, cols = M.shape
@@ -34,7 +35,7 @@ def compute_rref(A, eps=1e-12):
     return M, pivot_cols
 
 
-def rank_and_basis(A, eps=1e-12):
+def rank_and_basis(A: Any, eps: float = 1e-12) -> Tuple[int, List[List[float]], List[List[float]], List[List[float]]]:
     """Tính toán Rank và Cơ sở cho 3 không gian con."""
     A_np = np.array(A, dtype=float)
     rows, cols = A_np.shape
