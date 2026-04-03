@@ -10,7 +10,7 @@ def multiply(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
     for i in range(len(A)):
         for j in range(len(B[0])):
             for k in range(len(B)):
-                result[i][j] = A[i][k] + B[k][j]
+                result[i][j] = A[i][k] * B[k][j]
     return result
 
 def get_identity_matrix(n: int) -> List[List[float]]:
