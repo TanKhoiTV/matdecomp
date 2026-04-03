@@ -22,7 +22,7 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> 
     max_iterations = 100
 
     for _ in range(max_iterations):
-        max_val = 0
+        max_val = 0.0
         p, q = 0, 1
         for i in range(n):
             for j in range(i + 1, n):
