@@ -18,7 +18,7 @@
 #
 #    Wrong (tab characters):
 #      jobs:
-#      	check:           ← tab, looks fine in some editors, breaks GitHub
+#          check:           ← tab, looks fine in some editors, breaks GitHub
 #
 # 2. COLONS INSIDE STRINGS MUST BE QUOTED
 #    Bare colons confuse the YAML parser into thinking a new key is starting.
@@ -103,44 +103,68 @@ jobs:
       - name: Install flake8
         run: pip install flake8
 
-      # Step 5: Syntax check — catches import errors and broken files before review
-      # Add new .py files here as they are created across sprints.
-      # A missing file here will cause a FileNotFoundError, not a graceful skip —
-      # comment out files that do not exist yet in early sprints.
-      # - name: Check syntax — Part 1
-      #   run: |
-      #     python -m py_compile part1/gaussian.py
-      #     python -m py_compile part1/determinant.py
-      #     python -m py_compile part1/inverse.py
-      #     python -m py_compile part1/rank_basis.py
+      # Step 5: Syntax check — catches import errors and broken files before review.
+      # Each file is only compiled if it exists; missing files are skipped gracefully.
+      - name: Check syntax — Part 1
+        run: |
+          for f in part1/gaussian.py part1/determinant.py part1/inverse.py part1/rank_basis.py; do
+            if [ -f "$f" ]; then
+              python -m py_compile "$f" && echo "OK: $f"
+            else
+              echo "Skipping $f (not found)"
+            fi
+          done
 
-      # Uncomment as Part 2 and Part 3 files are added
-      # - name: Check syntax — Part 2
-      #   run: |
-      #     python -m py_compile part2/decomposition.py
-      #     python -m py_compile part2/diagonalization.py
-      #     python -m py_compile part2/theme.py
+      - name: Check syntax — Part 2
+        run: |
+          for f in part2/decomposition.py part2/diagonalization.py part2/theme.py; do
+            if [ -f "$f" ]; then
+              python -m py_compile "$f" && echo "OK: $f"
+            else
+              echo "Skipping $f (not found)"
+            fi
+          done
 
-      # - name: Check syntax — Part 3 (bonus only)
-      #   run: |
-      #     python -m py_compile part3/solvers.py
-      #     python -m py_compile part3/benchmark.py
+      - name: Check syntax — Part 3 (bonus only)
+        run: |
+          for f in part3/solvers.py part3/benchmark.py; do
+            if [ -f "$f" ]; then
+              python -m py_compile "$f" && echo "OK: $f"
+            else
+              echo "Skipping $f (not found)"
+            fi
+          done
 
       # Step 6: Lint with flake8
       # --max-line-length=100   : allows slightly longer lines than PEP8's 79
       # --ignore=E501           : don't double-flag long lines (max-line-length handles it)
       # --ignore=W503           : line break before binary operator — stylistic, not an error
       # --exclude=.venv         : never lint the virtual environment folder
-      # Adjust --ignore flags if the team agrees on stricter or looser rules.
-      # - name: Lint with flake8
-      #   run: |
-      #     flake8 part1/ \
-      #       --max-line-length=100 \
-      #       --ignore=E501,W503 \
-      #       --exclude=.venv
+      # The directory is only linted if it exists; missing dirs are skipped gracefully.
+      - name: Lint with flake8
+        run: |
+          if [ -d "part1/" ]; then
+            flake8 part1/ \
+              --max-line-length=100 \
+              --ignore=E501,W503 \
+              --exclude=.venv
+          else
+            echo "Skipping lint — part1/ not found"
+          fi
 
       - name: Check for banned solver calls
         run: |
+          # Build the list of directories that actually exist
+          dirs=""
+          for d in part1/ part2/ part3/; do
+            [ -d "$d" ] && dirs="$dirs $d"
+          done
+
+          if [ -z "$dirs" ]; then
+            echo "No part directories found — skipping banned solver check"
+            exit 0
+          fi
+
           ! grep -rn \
             -e "linalg\.solve" \
             -e "linalg\.inv" \
@@ -149,32 +173,50 @@ jobs:
             -e "\.rref()" \
             -e "\.echelon_form()" \
             -e "linsolve(" \
-            part1/ part2/ part3/ \
+            -e ".array" \
+            $dirs \
             --include="*.py"
-            
+
       - name: Install mypy
         run: pip install mypy
-      
-      # - name: Type check — Part 1
-      #   run: |
-      #     mypy part1/gaussian.py \
-      #          part1/determinant.py \
-      #          part1/inverse.py \
-      #          part1/rank_basis.py \
-      #     --config-file mypy.ini
 
-      # - name: Type check — Part 2
-      #   run: |
-      #     mypy part2/decomposition.py \
-      #          part2/diagonalization.py \
-      #          part2/theme.py \
-      #     --config-file mypy.ini
+      # Type-check steps collect only the files that actually exist, then run
+      # mypy once against all of them. The step is skipped entirely if none exist.
+      - name: Type check — Part 1
+        run: |
+          files=""
+          for f in part1/gaussian.py part1/determinant.py part1/inverse.py part1/rank_basis.py; do
+            [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
+          done
+          if [ -n "$files" ]; then
+            mypy $files --config-file mypy.ini
+          else
+            echo "No Part 1 files found — skipping type check"
+          fi
 
-      # - name: Type check — Part 3
-      #   run: |
-      #     mypy part3/solvers.py \
-      #          part3/benchmark.py \
-      #     --config-file mypy.ini
+      - name: Type check — Part 2
+        run: |
+          files=""
+          for f in part2/decomposition.py part2/diagonalization.py part2/theme.py; do
+            [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
+          done
+          if [ -n "$files" ]; then
+            mypy $files --config-file mypy.ini
+          else
+            echo "No Part 2 files found — skipping type check"
+          fi
+
+      - name: Type check — Part 3
+        run: |
+          files=""
+          for f in part3/solvers.py part3/benchmark.py; do
+            [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
+          done
+          if [ -n "$files" ]; then
+            mypy $files --config-file mypy.ini
+          else
+            echo "No Part 3 files found — skipping type check"
+          fi
 
       - name: Check branch name
         if: github.event_name == 'pull_request' && github.head_ref != 'dev'
