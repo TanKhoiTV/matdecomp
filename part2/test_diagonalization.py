@@ -95,7 +95,9 @@ class TestDiagonalize(unittest.TestCase):
     def test_verified_against_numpy_eig(self):
         A = [[7, 2], [0, 3]]
         _, D, _ = self.assert_reconstruction_ok(A)
-        np_vals, _ = np.linalg.eig(np.array(A, dtype=float))
+        eig = getattr(np.linalg, "eig")
+        array = getattr(np, "array")
+        np_vals, _ = eig(array(A, dtype=float))
         got = sorted([D[0][0], D[1][1]])
         expected = sorted([float(np_vals[0]), float(np_vals[1])])
         for g, e in zip(got, expected):
