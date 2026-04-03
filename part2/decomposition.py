@@ -1,16 +1,18 @@
 from typing import List, Tuple
-from math import atan2, sin, cos
+from math import atan2, sin, cos, sqrt
 
 
 def transpose(A: List[List[float]]) -> List[List[float]]:
     return [[A[j][i] for j in range(len(A))] for i in range(len(A[0]))]
 
 def multiply(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
-    result = [[0.0 for _ in range(len(B[0]))] for _ in range(len(A[0]))]
-    for i in range(len(A)):
-        for j in range(len(B[0])):
-            for k in range(len(B)):
-                result[i][j] = A[i][k] * B[k][j]
+    m, p = len(A), len(B[0])
+    n = len(B)
+    result = [[0.0 for _ in range(p)] for _ in range(m)]
+    for i in range(m):
+        for j in range(p):
+            for k in range(n):
+                result[i][j] += A[i][k] * B[k][j]
     return result
 
 def get_identity_matrix(n: int) -> List[List[float]]:
@@ -86,8 +88,54 @@ def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[fl
     - Phân tách: O(n^3) hoặc O(m * n^2) tùy thuộc thuật toán thực thi cụ thể.
     - Giải hệ: O(n^2) sau khi đã có dạng phân tách SVD.
     """
-    U: List[List[float]] = [[]]
-    Sigma: List[List[float]] = [[]]
-    VT: List[List[float]] = [[]]
+    m = len(A)
+    n = len(A[0])
+
+    AT = transpose(A)
+    ATA = multiply(AT, A)
+
+    lambdas, V = jacobi_eigenvalues(ATA)
+
+    sigmas = [sqrt(max(0.0, l)) for l in lambdas]
+
+    indices = list(range(n))
+    indices.sort(key=lambda i: sigmas[i], reverse=True)
+
+    sorted_sigmas = [sigmas[i] for i in indices]
+    V_sorted = [[V[row][i] for i in indices] for row in range(n)]
+
+    Sigma = [[0.0 for _ in range(n)] for _ in range(m)]
+    for i in range(min(m, n)):
+        Sigma[i][i] = sorted_sigmas[i]
+
+    U = [[0.0 for _ in range(m)] for _ in range(m)]
+
+    for i in range(min(m, n)):
+        if sorted_sigmas[i] > 1e-10:
+            for r in range(m):
+                col_sum = 0.0
+                for c in range(n):
+                    col_sum += A[r][c] * V_sorted[c][i]
+                U[r][i] = col_sum / sorted_sigmas[i]
+
+            norm = sqrt(sum(U[r][i] ** 2 for r in range(m)))
+            if norm > 1e-10:
+                for r in range(m):
+                    U[r][i] /= norm
+
+    for i in range(min(m, n), m):
+        U[i][i] = 1.0
+
+        for j in range(i):
+            product = sum(U[r][i] * U[r][j] for r in range(m))
+            for r in range(m):
+                U[r][i] -= product * U[r][j]
+        
+        norm = sqrt(sum(U[r][i] ** 2 for r in range(m)))
+        if norm > 1e-10:
+            for r in range(m):
+                U[r][i] /= norm
+
+    VT = transpose(V_sorted)
 
     return U, Sigma, VT
