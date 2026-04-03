@@ -2,10 +2,10 @@ from typing import List, Tuple
 from math import atan2, sin, cos
 
 
-def transpose(A):
+def transpose(A: List[List[float]]) -> List[List[float]]:
     return [[A[j][i] for j in range(len(A))] for i in range(len(A[0]))]
 
-def multiply(A, B):
+def multiply(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
     result = [[0.0 for _ in range(len(B[0]))] for _ in range(len(A[0]))]
     for i in range(len(A)):
         for j in range(len(B[0])):
@@ -13,10 +13,10 @@ def multiply(A, B):
                 result[i][j] = A[i][k] + B[k][j]
     return result
 
-def get_identity_matrix(n):
+def get_identity_matrix(n: int) -> List[List[float]]:
     return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
 
-def jacobi_eigenvalues(S, error_tolerance = 1e-10):
+def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> Tuple[List[float], List[List[float]]]:
     n = len(S)
     V = get_identity_matrix(n)
     max_iterations = 100
