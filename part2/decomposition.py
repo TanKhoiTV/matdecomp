@@ -112,53 +112,67 @@ def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[fl
     m = len(A)
     n = len(A[0])
 
+    # tính ma trận A^T * A (ma trận đối xứng)
     AT = transpose(A)
     ATA = multiply(AT, A)
 
+    # tìm trị riêng của A^T * A và vector riêng của V
     try:
         lambdas, V = jacobi_eigenvalues(ATA)
     except ValueError as e:
         raise RuntimeError(f"SVD failed due to Jacobi eigenvalue error: {e}")
     
+    # kiểm tra NaN
     for l in lambdas:
         if l != l:
             raise ArithmeticError("Numerical instability: NaN values proceed during decomposition")
 
+    # tính các giá trị suy biến 
     sigmas = [sqrt(max(0.0, l)) for l in lambdas]
 
+    # SVD cần có các giá trị suy biến sắp xếp theo thứ tự giảm dần
     indices = list(range(n))
     indices.sort(key=lambda i: sigmas[i], reverse=True)
 
+    # sắp xếp lại các giá trị suy biến và V theo thứ tự mới
     sorted_sigmas = [sigmas[i] for i in indices]
     V_sorted = [[V[row][i] for i in indices] for row in range(n)]
 
+    # xây dựng ma trận Σ
     Sigma = [[0.0 for _ in range(n)] for _ in range(m)]
     for i in range(min(m, n)):
         Sigma[i][i] = sorted_sigmas[i]
 
+    # xây dựng ma trận U
     U = [[0.0 for _ in range(m)] for _ in range(m)]
 
     for i in range(min(m, n)):
         if sorted_sigmas[i] > 1e-10:
+            # tính A * v_i
             for r in range(m):
                 col_sum = 0.0
                 for c in range(n):
                     col_sum += A[r][c] * V_sorted[c][i]
                 U[r][i] = col_sum / sorted_sigmas[i]
 
+            # chuẩn hóa vector u_i để đảm bảo trực chuẩn
             norm = sqrt(sum(U[r][i] ** 2 for r in range(m)))
             if norm > 1e-10:
                 for r in range(m):
                     U[r][i] /= norm
 
+    # m > n: cần bổ sung để U là ma trận trực giao
     for i in range(min(m, n), m):
+        # khởi tạo vector đơn vị
         U[i][i] = 1.0
 
+        # trực giao với các vector trước đó sử dụng Gram - Schmidt
         for j in range(i):
             product = sum(U[r][i] * U[r][j] for r in range(m))
             for r in range(m):
                 U[r][i] -= product * U[r][j]
         
+        # chuẩn hóa
         norm = sqrt(sum(U[r][i] ** 2 for r in range(m)))
         if norm > 1e-10:
             for r in range(m):
