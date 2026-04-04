@@ -22,6 +22,7 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> 
     n = len(S)
     V = get_identity_matrix(n)
     max_iterations = 100
+    is_converged = False
 
     for _ in range(max_iterations):
         max_val = 0.0
@@ -33,6 +34,7 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> 
                     p, q = i, j
 
         if max_val < error_tolerance:
+            is_converged = True
             break
 
         phi = 0.5 * atan2(2 * S[p][q], S[q][q] - S[p][p])
@@ -53,6 +55,9 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> 
             v_ip, v_iq = V[i][p], V[i][q]
             V[i][p] = c * v_ip - s * v_iq
             V[i][q] = s * v_ip + c * v_iq
+    
+    if not is_converged:
+        raise ValueError(f"Numerical instability: Failed to converge within {max_iterations} iterations")
     
     eigenvalues = [S[i][i] for i in range(n)]
     
@@ -88,13 +93,23 @@ def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[fl
     - Phân tách: O(n^3) hoặc O(m * n^2) tùy thuộc thuật toán thực thi cụ thể.
     - Giải hệ: O(n^2) sau khi đã có dạng phân tách SVD.
     """
+    if not A or not A[0]:
+        raise ValueError("Input matrix is empty")
+    
     m = len(A)
     n = len(A[0])
 
     AT = transpose(A)
     ATA = multiply(AT, A)
 
-    lambdas, V = jacobi_eigenvalues(ATA)
+    try:
+        lambdas, V = jacobi_eigenvalues(ATA)
+    except ValueError as e:
+        raise RuntimeError(f"SVD failed due to Jacobi eigenvalue error: {e}")
+    
+    for l in lambdas:
+        if l != l:
+            raise ArithmeticError("Numerical instability: NaN values proceed during decomposition")
 
     sigmas = [sqrt(max(0.0, l)) for l in lambdas]
 
