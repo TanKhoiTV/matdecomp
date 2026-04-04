@@ -20,11 +20,15 @@ def get_identity_matrix(n: int) -> List[List[float]]:
 
 def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> Tuple[List[float], List[List[float]]]:
     n = len(S)
+
+    # V tích lũy các phép quay -> cuối cùng chứa vector riêng
     V = get_identity_matrix(n)
+
     max_iterations = 100
     is_converged = False
 
     for _ in range(max_iterations):
+        # tìm phần tử lớn nhất nằm ngoài đường chéo
         max_val = 0.0
         p, q = 0, 1
         for i in range(n):
@@ -33,24 +37,32 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> 
                     max_val = abs(S[i][j])
                     p, q = i, j
 
+        # nếu tất cả các phần tử đủ nhỏ -> đã hội tụ
         if max_val < error_tolerance:
             is_converged = True
             break
 
+        # tính góc xoay Jacobi
+        # tan(2 * theta) = 2 * S[p][q] / (S[q][q] - S[p][p])
         phi = 0.5 * atan2(2 * S[p][q], S[q][q] - S[p][p])
+        # cos và sin của góc xoay
         c, s = cos(phi), sin(phi)
 
         s_pp, s_qq = S[p][p], S[q][q]
+        # công thức biến đổi tương tự A' = J^T * A * J
         S[p][p] = c ** 2 * s_pp - 2 * s * c * S[p][q] + s ** 2 * s_qq
         S[q][q] = s ** 2 * s_pp + 2 * s * c * S[p][q] + c ** 2 * s_qq
         S[p][q] = S[q][p] = 0.0
 
+        # cập nhật các hàng và cột p và q
         for i in range(n):
             if i != p and i != q:
                 s_ip, s_iq = S[i][p], S[i][q]
+                # áp dụng phép xoay lên các phần tử
                 S[i][p] = S[p][i] = c * s_ip - s * s_iq
                 S[i][q] = S[q][i] = s * s_ip + c * s_iq
         
+        # tích lũy phép quay
         for i in range(n):
             v_ip, v_iq = V[i][p], V[i][q]
             V[i][p] = c * v_ip - s * v_iq
@@ -59,6 +71,7 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> 
     if not is_converged:
         raise ValueError(f"Numerical instability: Failed to converge within {max_iterations} iterations")
     
+    # sau khi hội tụ, ma trận S gần như chéo -> các phần tử nằm trên đường chéo là trị riêng
     eigenvalues = [S[i][i] for i in range(n)]
     
     return eigenvalues, V
