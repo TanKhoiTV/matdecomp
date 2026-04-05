@@ -20,7 +20,7 @@ def compute_rref(A: List[List[float]], eps: float = 1e-12) -> Tuple[List[List[fl
 
     num_cols = len(A[0])
     if any(len(row) != num_cols for row in A):
-        raise ValueError("Inconsistent row lengths.") # Độ dài các hàng không nhất quán
+        raise ValueError("Inconsistent row lengths.")  # Độ dài các hàng không nhất quán
 
     m_matrix = [row[:] for row in A]
     rows, cols = len(m_matrix), num_cols
