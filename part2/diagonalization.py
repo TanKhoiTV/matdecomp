@@ -1,10 +1,14 @@
 """
 Chéo hóa ma trận vuông thực A ≈ P D P^{-1} (triển khai thuần list, không NumPy).
 
-Thuật toán: QR (Modified Gram–Schmidt) + QR có shift Wilkinson + deflation → trị riêng;
-gom cụm trị riêng gần nhau; cơ sở ker(A - λI); Gauss–Jordan cho P^{-1}; kiểm tra Frobenius.
+Thuật toán: QR (Modified Gram-Schmidt) + QR có shift Wilkinson + deflation → trị riêng;
+gom cụm trị riêng gần nhau; cơ sở ker(A - λI); Gauss-Jordan cho P^{-1}; kiểm tra Frobenius.
 
-Phạm vi: ma trận thực chéo hóa được trên R. Phổ phức được bắt sớm cho n == 2 (biệt thức).
+Phạm vi: ma trận thực chéo hóa được trên R. 
+Phổ phức được phát hiện sớm đối với ma trận 2*2 thông qua biệt thức; 
+đối với kích thước lớn hơn, việc phát hiện phổ phức không được đảm bảo.
+
+Phương pháp phù hợp cho ma trận kích thước nhỏ-trung bình với phổ thực.
 """
 
 from __future__ import annotations
@@ -29,7 +33,7 @@ __all__ = [
 
 EPS = 1e-10
 MAX_ITER = 3000
-RECON_TOL = 1e-10
+RECON_TOL = 1e-8
 CLUSTER_ABS_TOL = 1e-7
 CLUSTER_REL_TOL = 1e-6
 
@@ -60,7 +64,7 @@ def norm(v: List[float]) -> float:
 
 
 def _has_nonreal_eigenvalues(A: List[List[float]], n: int) -> bool:
-    """2*2: phân biệt thực / phức qua biệt thức. n>2: không kiểm tra (không NumPy)."""
+    """2*2: phân biệt thực / phức qua biệt thức. n>2: không kiểm tra."""
     if n != 2:
         return False
     a, b = A[0][0], A[0][1]
@@ -256,7 +260,7 @@ def inverse(A: List[List[float]]) -> List[List[float]]:
 
     return [row[n:] for row in M]
 
-
+# Main function: diagonalize
 def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
     Chéo hóa A = P D P^{-1} (trên R): QR có shift + deflation, cơ sở không gian riêng, kiểm tra Frobenius.
