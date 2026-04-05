@@ -1,7 +1,7 @@
 import unittest
 import importlib.util
 
-from diagonalization import diagonalize
+from part2.diagonalization import diagonalize
 
 np_spec = importlib.util.find_spec("numpy")
 if np_spec is not None:  # pragma: no cover - environment dependent
