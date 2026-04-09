@@ -39,6 +39,19 @@ CLUSTER_REL_TOL = 1e-6
 
 
 def matmul(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
+    """
+    Multiply two matrices represented as nested lists.
+    
+    Parameters:
+        A (List[List[float]]): Left matrix with shape n×p.
+        B (List[List[float]]): Right matrix with shape p×m.
+    
+    Returns:
+        List[List[float]]: Resulting matrix with shape n×m where element (i, j) is the sum over k of A[i][k] * B[k][j].
+    
+    Notes:
+        No shape validation is performed; behavior is undefined if the inner dimensions do not match.
+    """
     n = len(A)
     m = len(B[0])
     p = len(B)
@@ -46,25 +59,70 @@ def matmul(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
 
 
 def identity(n: int) -> List[List[float]]:
+    """
+    Create an n×n identity matrix.
+    
+    Parameters:
+        n (int): Size of the square identity matrix.
+    
+    Returns:
+        List[List[float]]: n×n matrix with `1.0` on the diagonal and `0.0` elsewhere.
+    """
     return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
 
 
 def subtract(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
+    """
+    Subtract two square matrices elementwise.
+    
+    Parameters:
+        A (List[List[float]]): Left-hand n×n matrix.
+        B (List[List[float]]): Right-hand n×n matrix (must have the same dimensions as `A`).
+    
+    Returns:
+        List[List[float]]: New n×n matrix where each element is A[i][j] - B[i][j].
+    """
     n = len(A)
     return [[A[i][j] - B[i][j] for j in range(n)] for i in range(n)]
 
 
 def scalar_mult(A: List[List[float]], c: float) -> List[List[float]]:
+    """
+    Multiply each element of a square matrix by a scalar.
+    
+    Parameters:
+        A (List[List[float]]): Square matrix (n x n) represented as a list of n rows, each with n floats.
+        c (float): Scalar multiplier.
+    
+    Returns:
+        List[List[float]]: New n x n matrix where each element is equal to `c * A[i][j]`.
+    """
     n = len(A)
     return [[c * A[i][j] for j in range(n)] for i in range(n)]
 
 
 def norm(v: List[float]) -> float:
+    """
+    Compute the Euclidean (L2) norm of a vector.
+    
+    Parameters:
+        v (List[float]): Sequence of numeric components.
+    
+    Returns:
+        float: The Euclidean norm (sqrt of the sum of squares of the components), which is greater than or equal to 0.
+    """
     return math.sqrt(sum(x * x for x in v))
 
 
 def _has_nonreal_eigenvalues(A: List[List[float]], n: int) -> bool:
-    """2*2: phân biệt thực / phức qua biệt thức. n>2: không kiểm tra."""
+    """
+    Detects whether a 2×2 real matrix has complex (nonreal) eigenvalues by checking the characteristic discriminant.
+    
+    For n == 2, computes the discriminant of the characteristic polynomial (trace^2 - 4·det) and treats sufficiently negative values as indicating nonreal eigenvalues (threshold -1e-9). For n != 2 this function does not attempt detection and returns False.
+    
+    Returns:
+        bool: `True` if the discriminant < -1e-9 (indicating complex eigenvalues), `False` otherwise.
+    """
     if n != 2:
         return False
     a, b = A[0][0], A[0][1]
@@ -76,7 +134,19 @@ def _has_nonreal_eigenvalues(A: List[List[float]], n: int) -> bool:
 
 
 def _cluster_eigenvalue_indices(vals: List[float]) -> List[List[int]]:
-    """Gom chỉ số cột có trị riêng gần nhau (sắp xếp theo giá trị)."""
+    """
+    Group indices of nearby eigenvalues into consecutive clusters ordered by eigenvalue.
+    
+    This function sorts indices by their corresponding values in `vals` and forms consecutive clusters
+    where each new value is within CLUSTER_ABS_TOL + CLUSTER_REL_TOL * max(1.0, |mu|) of the cluster mean `mu`.
+    
+    Parameters:
+        vals (List[float]): List of scalar values (typically eigenvalues).
+    
+    Returns:
+        List[List[int]]: A list of clusters; each cluster is a list of indices from `vals`.
+        Clusters are returned in ascending order of the associated eigenvalue(s).
+    """
     n = len(vals)
     if n == 0:
         return []
@@ -102,7 +172,12 @@ def _cluster_eigenvalue_indices(vals: List[float]) -> List[List[int]]:
 
 
 def qr_decomposition(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]]]:
-    """Modified Gram–Schmidt: A = Q R."""
+    """
+    Compute the QR decomposition of a square matrix using the modified Gram–Schmidt process.
+    
+    Returns:
+        (Q, R): Tuple of n×n matrices where A = Q R. Q has orthonormal columns for those columns whose norm is >= EPS; R is upper-triangular. If a column of A has norm less than EPS, the corresponding diagonal R[i][i] is zero and the Q column is left as the zero vector.
+    """
     n = len(A)
     Q = [[0.0] * n for _ in range(n)]
     R = [[0.0] * n for _ in range(n)]
@@ -126,7 +201,15 @@ def qr_decomposition(A: List[List[float]]) -> Tuple[List[List[float]], List[List
 
 
 def wilkinson_shift(A: List[List[float]]) -> float:
-    """Trị riêng góc 2*2 dưới gần A_nn hơn (ổn định khi biệt thức âm do số học)."""
+    """
+    Selects a Wilkinson shift based on the bottom-right 2×2 block of matrix A.
+    
+    If A has size 1 returns A[0][0]. For larger A, computes the eigenvalues of the 2×2 submatrix
+    formed by the last two rows/columns and returns the eigenvalue that is closer to the bottom-right
+    diagonal element. If the 2×2 discriminant is negative due to rounding, it is treated as zero.
+    Returns:
+        The chosen Wilkinson shift (a scalar float).
+    """
     n = len(A)
     if n < 2:
         return A[0][0]
@@ -148,6 +231,15 @@ def wilkinson_shift(A: List[List[float]]) -> float:
 
 
 def qr_algorithm(A: List[List[float]]) -> List[float]:
+    """
+    Compute the eigenvalues of a real square matrix using shifted QR iteration with Wilkinson shifts and deflation.
+    
+    Parameters:
+        A (List[List[float]]): Square matrix (list of rows) whose eigenvalues are sought.
+    
+    Returns:
+        List[float]: Approximated eigenvalues of A as floats. Values are returned in the order discovered by deflation (typically corresponding to bottom-right toward top-left of the working matrix).
+    """
     n = len(A)
     Ak = [row[:] for row in A]
     eigenvalues: List[float] = []
@@ -183,7 +275,17 @@ def qr_algorithm(A: List[List[float]]) -> List[float]:
 
 
 def null_space_basis(A: List[List[float]]) -> List[List[float]]:
-    """Cơ sở ker(A): mỗi biến tự do → một vector độc lập (RREF)."""
+    """
+    Compute a basis for the null space (kernel) of A.
+    
+    Each returned vector is a column vector (as a list) corresponding to one free variable in a reduced row-echelon form of A; the set spans ker(A). If A has full column rank (no free variables), an empty list is returned.
+    
+    Parameters:
+        A (List[List[float]]): m-by-n matrix (list of rows) representing the linear map whose null space is sought.
+    
+    Returns:
+        List[List[float]]: A list of basis vectors for ker(A); each vector has length equal to the number of columns of A.
+    """
     n = len(A)
     m = len(A[0])
 
@@ -232,12 +334,32 @@ def null_space_basis(A: List[List[float]]) -> List[List[float]]:
 
 
 def null_space(A: List[List[float]]) -> List[float]:
+    """
+    Return a single basis vector of the null space of matrix A, or an empty list if the null space is {0}.
+    
+    Parameters:
+        A (List[List[float]]): Real matrix with m rows and n columns.
+    
+    Returns:
+        List[float]: A vector of length n that spans (one element of) the null space of A if a nontrivial null space exists, otherwise an empty list.
+    """
     b = null_space_basis(A)
     return b[0] if b else []
 
 
 def inverse(A: List[List[float]]) -> List[List[float]]:
-    """Gauss–Jordan trên [A | I]."""
+    """
+    Compute the inverse of a square matrix by performing Gauss–Jordan elimination on the augmented matrix [A | I].
+    
+    Parameters:
+        A (List[List[float]]): Square n×n matrix to invert.
+    
+    Returns:
+        List[List[float]]: The n×n inverse of A.
+    
+    Raises:
+        ValueError: If A is not invertible (no suitable pivot found).
+    """
     n = len(A)
     M = [A[i][:] + identity(n)[i][:] for i in range(n)]
 
@@ -263,10 +385,24 @@ def inverse(A: List[List[float]]) -> List[List[float]]:
 # Main function: diagonalize
 def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
-    Chéo hóa A = P D P^{-1} (trên R): QR có shift + deflation, cơ sở không gian riêng, kiểm tra Frobenius.
-
-    Ném ValueError nếu ma trận không hợp lệ, phổ phức (2*2), không chéo hóa được,
-    hoặc sai số tái tạo vượt RECON_TOL.
+    Compute a real diagonalization A = P D P^{-1} for the square matrix A.
+    
+    This routine finds eigenvalues with a shifted QR iteration (Wilkinson shift + deflation),
+    groups nearby eigenvalues, builds eigenvectors from null spaces of (A - λI), assembles
+    P from those eigenvectors, computes P^{-1} by Gauss–Jordan, constructs the diagonal D,
+    and verifies the decomposition by the relative Frobenius norm (compare reconstructed A to input).
+    
+    Returns:
+        tuple: (P, D, P_inv) where each is an n×n matrix represented as a list of lists;
+            P contains eigenvectors as columns, D is diagonal with the computed eigenvalues,
+            and P_inv is the inverse of P.
+    
+    Raises:
+        ValueError: if A is not a non-empty list matrix, not square, or invalid input;
+        ValueError: if a 2×2 discriminant test indicates nonreal eigenvalues (diagonalization over R not possible);
+        ValueError: if the algorithm determines A is not diagonalizable (insufficient null-space dimension or missing eigenvectors);
+        ValueError: if eigenvectors are linearly dependent (P is noninvertible);
+        ValueError: if the relative Frobenius reconstruction error exceeds RECON_TOL.
     """
     if not isinstance(A, list) or len(A) == 0:
         raise ValueError("Invalid matrix")
