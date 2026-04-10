@@ -460,9 +460,10 @@ class SVDApplicationScene(Scene):
         dots = VGroup()
         angle_val = PI / 6
 
+        rng = np.random.default_rng(0)
         for _ in range(300):
-            x = np.random.normal(scale=2.0)
-            y = np.random.normal(scale=0.5)
+            x = rng.normal(scale=2.0)
+            y = rng.normal(scale=0.5)
 
             point = np.array([
                 x * np.cos(angle_val) - y * np.sin(angle_val),
