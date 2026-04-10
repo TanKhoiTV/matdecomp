@@ -18,13 +18,12 @@ def multiply(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
 def get_identity_matrix(n: int) -> List[List[float]]:
     return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
 
-def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> Tuple[List[float], List[List[float]]]:
+def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10, max_iterations: int = 100) -> Tuple[List[float], List[List[float]]]:
     n = len(S)
 
     # V tích lũy các phép quay -> cuối cùng chứa vector riêng
     V = get_identity_matrix(n)
 
-    max_iterations = 100
     is_converged = False
 
     for _ in range(max_iterations):
