@@ -3,6 +3,7 @@ from typing import Sequence, List
 
 
 def is_diagonally_dominant(A: Sequence[Sequence[float]]) -> bool:
+    """Checks if the matrix A is row diagonally dominant."""
     n: int = len(A)
     if n == 0:
         return False
@@ -20,10 +21,11 @@ def is_diagonally_dominant(A: Sequence[Sequence[float]]) -> bool:
 
 
 def residual(
-    A: Sequence[Sequence[float]],
-    x: Sequence[float],
-    b: Sequence[float]
+        A: Sequence[Sequence[float]],
+        x: Sequence[float],
+        b: Sequence[float]
 ) -> float:
+    """Calculates the infinity norm of the residual vector Ax - b."""
     n: int = len(x)
     return max(
         abs(sum(A[i][j] * x[j] for j in range(n)) - b[i])
@@ -32,11 +34,23 @@ def residual(
 
 
 def gauss_seidel(
-    A: Sequence[Sequence[float]],
-    b: Sequence[float],
-    tolerance: float = 1e-6,
-    max_iter: int = 1000
+        A: Sequence[Sequence[float]],
+        b: Sequence[float],
+        tolerance: float = 1e-6,
+        max_iter: int = 1000
 ) -> List[float]:
+    """
+    Solves Ax = b using the Gauss-Seidel iterative method.
+
+    Validates that tolerance and max_iter are strictly positive.
+    """
+    # Validate strictly positive parameters
+    if tolerance <= 0:
+        raise ValueError("tolerance must be strictly positive (> 0).")
+
+    if max_iter <= 0:
+        raise ValueError("max_iter must be strictly positive (> 0).")
+
     n: int = len(A)
 
     if n == 0:
@@ -64,7 +78,9 @@ def gauss_seidel(
         for i in range(n):
             old_xi: float = x[i]
 
+            # sum1 uses already updated elements in current iteration (Gauss-Seidel property)
             sum1: float = sum(A[i][j] * x[j] for j in range(i))
+            # sum2 uses elements from the previous iteration
             sum2: float = sum(A[i][j] * x[j] for j in range(i + 1, n))
 
             x[i] = (b[i] - sum1 - sum2) / A[i][i]
@@ -73,6 +89,7 @@ def gauss_seidel(
             if diff > err:
                 err = diff
 
+        # Convergence check
         if err < tolerance:
             res: float = residual(A, x, b)
             if res < tolerance:
