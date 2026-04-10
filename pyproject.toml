@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "ipykernel==6.29.5",
     "jupyter==1.1.1",
+    "manim>=0.20.1",
     "matplotlib==3.10.1",
     "mypy==1.15.0",
     "notebook==7.3.3",
