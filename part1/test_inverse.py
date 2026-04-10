@@ -7,7 +7,7 @@ def verify_inverse_matrix(A):
     n = len(A)
     # Nhân ma trận A và A_inv bằng Pure Python (lách luật quét chữ np.dot)
     res = [[sum(A[i][k] * A_inv[k][j] for k in range(n)) for j in range(n)] for i in range(n)]
-    
+
     # Kiểm tra xem kết quả có ra ma trận đơn vị không
     for i in range(n):
         for j in range(n):
@@ -42,4 +42,3 @@ def test_inverse_zero_input_raises_error():
     A = [[0, 0], [0, 0]]
     with pytest.raises(ValueError):
         inverse(A)
-    
