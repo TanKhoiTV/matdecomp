@@ -1,3 +1,4 @@
+from typing import List, Tuple, Any, Dict
 import sys
 import time
 import numpy as np
@@ -5,48 +6,47 @@ import pandas as pd
 import os
 
 
+# Đảm bảo đường dẫn import đúng cấu trúc thư mục
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from part1.gaussian import gaussian_eliminate
 from part2.decomposition import svd_decompose
 from part3.solvers import gauss_seidel
 
-
 np.random.seed(42)
 
-
-# chuẩn hoá
-def solve_gaussian_wrapper(A, b):
+#chuẩn hoá
+def solve_gaussian_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
     _, x, _ = gaussian_eliminate(A, b)
     return np.array(x)
 
 
-def solve_svd_wrapper(A, b):
-    U, Sigma, VT = svd_decompose(A,20000) #max_iterations = 20000 (jacobi)
+def solve_svd_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
+    U, Sigma, VT = svd_decompose(A, 20000) #max_iterations = 20000 (jacobi)
 
-    m = len(Sigma)
-    n = len(Sigma[0])
+    m: int = len(Sigma)
+    n: int = len(Sigma[0])
 
-    Sigma_inv = [[0.0]*m for _ in range(n)]
+    Sigma_inv: List[List[float]] = [[0.0]*m for _ in range(n)]
     for i in range(min(m, n)):
         if abs(Sigma[i][i]) > 1e-12:
             Sigma_inv[i][i] = 1.0 / Sigma[i][i]
 
-    U = np.array(U)
-    Sigma_inv = np.array(Sigma_inv)
-    VT = np.array(VT)
-    b = np.array(b)
+    U_arr: np.ndarray = np.array(U)
+    Sigma_inv_arr: np.ndarray = np.array(Sigma_inv)
+    VT_arr: np.ndarray = np.array(VT)
+    b_arr: np.ndarray = np.array(b)
 
-    return VT.T @ Sigma_inv @ U.T @ b
+    return VT_arr.T @ Sigma_inv_arr @ U_arr.T @ b_arr
 
 
-def solve_gauss_seidel_wrapper(A, b):
+def solve_gauss_seidel_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
     return np.array(gauss_seidel(A, b))
 
 
-# hàm sinh ma trận
-def generate_system(n, matrix_type="SPD"):
+#hàm sinh ma trận
+def generate_system(n: int, matrix_type: str = "SPD") -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     if matrix_type == "SPD":
-        A = np.random.rand(n, n)
+        A: np.ndarray = np.random.rand(n, n)
         A = A + n * np.eye(n)
 
     elif matrix_type == "Hilbert":
@@ -55,20 +55,20 @@ def generate_system(n, matrix_type="SPD"):
     else:
         raise ValueError("Unknown matrix type")
 
-    x_true = np.random.rand(n)
-    b = A @ x_true
+    x_true: np.ndarray = np.random.rand(n)
+    b: np.ndarray = A @ x_true
 
     return A, b, x_true
 
 
-#benchmark
-def run_benchmark():
-    sizes = [50, 100, 200, 500, 1000]
-    matrix_types = ["SPD", "Hilbert"]
+# benchmark
+def run_benchmark() -> None:
+    sizes: List[int] = [50, 100, 200, 500, 1000]
+    matrix_types: List[str] = ["SPD", "Hilbert"]
 
-    results = []
+    results: List[Dict[str, Any]] = []
 
-    solvers = {
+    solvers: Dict[str, Any] = {
         'Gaussian': solve_gaussian_wrapper,
         'SVD': solve_svd_wrapper,
         'Gauss-Seidel': solve_gauss_seidel_wrapper
@@ -85,10 +85,10 @@ def run_benchmark():
             print(f"\nRunning: {mtype}, n={n}")
 
             A, b, x_true = generate_system(n, mtype)
-            cond_A = np.linalg.cond(A)
+            cond_A: float = float(np.linalg.cond(A))
 
-            A_list = A.tolist()
-            b_list = b.tolist()
+            A_list: List[List[float]] = A.tolist()
+            b_list: List[float] = b.tolist()
 
             for name, solver in solvers.items():
 
@@ -107,31 +107,37 @@ def run_benchmark():
                     })
                     continue
 
-                times = []
+                times: List[float] = []
 
-                solver(A_list, b_list)
+                # warm-up
+                try:
+                    solver(A_list, b_list)
+                except Exception as e:
+                    print(f"  Error: {e}")
+                    continue
 
+                x_hat: np.ndarray = np.array([])
                 for _ in range(5):
-                    start = time.perf_counter()
+                    start: float = time.perf_counter()
                     x_hat = solver(A_list, b_list)
                     times.append(time.perf_counter() - start)
 
-                mean_time = np.mean(times)
-                std_time = np.std(times)
+                mean_time: float = float(np.mean(times))
+                std_time: float = float(np.std(times))
 
-                #residual
-                norm_b = np.linalg.norm(b)
+                # residual
+                norm_b: float = float(np.linalg.norm(b))
                 if norm_b == 0:
-                    residual = 0.0
+                    residual: float = 0.0
                 else:
-                    residual = np.linalg.norm(A @ x_hat - b) / norm_b
+                    residual = float(np.linalg.norm(A @ x_hat - b) / norm_b)
 
-                #solution error
-                norm_x = np.linalg.norm(x_true)
+                # solution error
+                norm_x: float = float(np.linalg.norm(x_true))
                 if norm_x == 0:
-                    solution_error = 0.0
+                    solution_error: float = 0.0
                 else:
-                    solution_error = np.linalg.norm(x_hat - x_true) / norm_x
+                    solution_error = float(np.linalg.norm(x_hat - x_true) / norm_x)
 
                 results.append({
                     'matrix_type': mtype,
@@ -146,11 +152,13 @@ def run_benchmark():
 
                 print(f"  Done {name}")
 
+    # save
     os.makedirs('part3', exist_ok=True)
     df = pd.DataFrame(results)
     df.to_csv('part3/results_full.csv', index=False)
 
     print("\n Saved to part3/results_full.csv")
+
 
 
 if __name__ == "__main__":
