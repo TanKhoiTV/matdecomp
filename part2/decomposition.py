@@ -75,7 +75,7 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10, max
     
     return eigenvalues, V
 
-def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
+def svd_decompose(A: List[List[float]], max_iterations: int = 100) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
     Phân tách giá trị suy biến (Singular Value Decomposition - SVD) của một ma trận.
 
@@ -117,7 +117,7 @@ def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[fl
 
     # tìm trị riêng của A^T * A và vector riêng của V
     try:
-        lambdas, V = jacobi_eigenvalues(ATA)
+        lambdas, V = jacobi_eigenvalues(ATA, max_iterations)
     except ValueError as e:
         raise RuntimeError(f"SVD failed due to Jacobi eigenvalue error: {e}")
     
