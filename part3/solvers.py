@@ -21,12 +21,11 @@ def gauss_seidel(
     """
     n = len(A)
     
-    # [FIX] Chặn lỗi ma trận rỗng theo yêu cầu của bot
-    if n == 0:
-        return []
-        
     if len(b) != n:
         raise ValueError("Kích thước ma trận A và vector b không khớp.")
+        
+    if n == 0:
+        return []
         
     for row in A:
         if len(row) != n:
