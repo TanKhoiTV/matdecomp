@@ -4,6 +4,14 @@ from typing import Sequence
 def is_diagonally_dominant(A: Sequence[Sequence[float]]) -> bool:
     """Kiểm tra ma trận chéo trội hàng (Row Diagonal Dominance)."""
     n = len(A)
+    
+    # [FIX] Đảm bảo ma trận không rỗng và phải là ma trận vuông
+    if n == 0:
+        return False
+    for row in A:
+        if len(row) != n:
+            return False
+            
     for i in range(n):
         sum_other = sum(abs(A[i][j]) for j in range(n) if j != i)
         if abs(A[i][i]) < sum_other:
