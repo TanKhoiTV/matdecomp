@@ -175,7 +175,7 @@ jobs:
             -e "linsolve(" \
             -e ".array" \
             $dirs \
-            --include="*.py"
+            --include="*.py" \
             --exclude="manim_scene.py"
 
       - name: Install mypy
