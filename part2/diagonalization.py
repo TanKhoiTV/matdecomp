@@ -29,15 +29,12 @@ Lỗi (raises ValueError):
 Phù hợp cho ma trận kích thước nhỏ–trung bình với phổ thực.
 """
 
-try:
-    from part1.inverse import inverse
-except ImportError:
-    from part1.inverse import inverse
-
 from __future__ import annotations
 
 from typing import List, Optional, Tuple
 import math
+
+from part1.inverse import inverse
 
 try:
     from .decomposition import jacobi_eigenvalues
