@@ -26,7 +26,8 @@ def test_spd_matrix():
 def test_non_convergent_warning():
     A3 = [[1.0, 3.0], [4.0, 1.0]]
     b3 = [4.0, 5.0]
-    with pytest.warns(UserWarning, match="không hội tụ"):
+    # [FIX] Đổi từ khóa match dài ra để chỉ bắt trúng cảnh báo hết max_iter
+    with pytest.warns(UserWarning, match="Thuật toán không hội tụ sau"):
         gauss_seidel(A3, b3, max_iter=50)
 
 def test_comparison_to_gauss():

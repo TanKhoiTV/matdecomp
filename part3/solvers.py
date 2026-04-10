@@ -20,6 +20,11 @@ def gauss_seidel(
     Giải hệ phương trình Ax = b bằng phương pháp Gauss-Seidel.
     """
     n = len(A)
+    
+    # [FIX] Chặn lỗi ma trận rỗng theo yêu cầu của bot
+    if n == 0:
+        return []
+        
     if len(b) != n:
         raise ValueError("Kích thước ma trận A và vector b không khớp.")
         
