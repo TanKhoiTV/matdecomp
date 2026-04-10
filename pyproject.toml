@@ -1,0 +1,18 @@
+[project]
+name = "matdecomp"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel==6.29.5",
+    "jupyter==1.1.1",
+    "matplotlib==3.10.1",
+    "mypy==1.15.0",
+    "notebook==7.3.3",
+    "numpy==2.2.4",
+    "pre-commit==4.2.0",
+    "scipy==1.15.2",
+    "sympy==1.13.3",
+    "tqdm==4.67.1",
+]
