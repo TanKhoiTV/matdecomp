@@ -21,7 +21,7 @@ def solve_gaussian_wrapper(A, b):
 
 
 def solve_svd_wrapper(A, b):
-    U, Sigma, VT = svd_decompose(A,20000)
+    U, Sigma, VT = svd_decompose(A,20000) #max_iterations = 20000 (jacobi)
 
     m = len(Sigma)
     n = len(Sigma[0])

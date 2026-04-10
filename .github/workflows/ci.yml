@@ -192,7 +192,7 @@ jobs:
             [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
           done
           if [ -n "$files" ]; then
-            mypy $files --config-file mypy.ini
+            mypy --explicit-package-bases --namespace-packages $files --config-file mypy.ini
           else
             echo "No Part 1 files found — skipping type check"
           fi
@@ -204,7 +204,7 @@ jobs:
             [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
           done
           if [ -n "$files" ]; then
-            mypy $files --config-file mypy.ini
+            mypy --explicit-package-bases --namespace-packages $files --config-file mypy.ini
           else
             echo "No Part 2 files found — skipping type check"
           fi
@@ -216,7 +216,7 @@ jobs:
             [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
           done
           if [ -n "$files" ]; then
-            mypy $files --config-file mypy.ini
+            mypy --explicit-package-bases --namespace-packages $files --config-file mypy.ini
           else
             echo "No Part 3 files found — skipping type check"
           fi
