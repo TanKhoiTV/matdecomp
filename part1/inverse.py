@@ -1,8 +1,11 @@
-def inverse(A):
+from typing import Sequence
+
+def inverse(A: Sequence[Sequence[float | int]]) -> list[list[float]]:
     """Tính ma trận nghịch đảo của A bằng thuật toán Gauss-Jordan."""
     n = len(A)
     # Tạo ma trận bổ sung [A | I]
-    combined = [row + [(1.0 if i == j else 0.0) for j in range(n)] for i, row in enumerate(A)]
+    combined = [[float(val) for val in row] + [(1.0 if i == j else 0.0) for j in range(n)] 
+                for i, row in enumerate(A)]
 
     for i in range(n):
         # Tìm hàng có giá trị lớn nhất ở cột i để làm pivot
