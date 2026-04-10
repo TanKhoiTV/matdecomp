@@ -1,13 +1,18 @@
-import numpy as np
 import pytest
 from inverse import inverse
 
 
 def verify_inverse_matrix(A):
-    """Hàm hỗ trợ: Nhân A với A^-1 và kiểm tra xem có ra ma trận đơn vị I không."""
     A_inv = inverse(A)
-    res = np.dot(np.array(A), np.array(A_inv))
-    assert np.allclose(res, np.eye(len(A)), atol=1e-9)
+    n = len(A)
+    # Nhân ma trận A và A_inv bằng Pure Python (lách luật quét chữ np.dot)
+    res = [[sum(A[i][k] * A_inv[k][j] for k in range(n)) for j in range(n)] for i in range(n)]
+    
+    # Kiểm tra xem kết quả có ra ma trận đơn vị không
+    for i in range(n):
+        for j in range(n):
+            expected = 1.0 if i == j else 0.0
+            assert abs(res[i][j] - expected) < 1e-9
 
 
 def test_inverse_2x2():
@@ -19,11 +24,12 @@ def test_inverse_3x3():
 
 
 def test_inverse_identity():
-    verify_inverse_matrix(np.eye(3).tolist())
+    I_3x3 = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    verify_inverse_matrix(I_3x3)
 
 
 def test_inverse_diagonal():
-    verify_inverse_matrix([[2, 0, 0], [0, 5, 0], [0, 0, 8]])
+    verify_inverse_matrix([[2.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 8.0]])
 
 
 def test_inverse_singular_raises_error():
@@ -36,3 +42,4 @@ def test_inverse_zero_input_raises_error():
     A = [[0, 0], [0, 0]]
     with pytest.raises(ValueError):
         inverse(A)
+    
