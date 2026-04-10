@@ -18,13 +18,12 @@ def multiply(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
 def get_identity_matrix(n: int) -> List[List[float]]:
     return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
 
-def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> Tuple[List[float], List[List[float]]]:
+def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10, max_iterations: int = 100) -> Tuple[List[float], List[List[float]]]:
     n = len(S)
 
     # V tích lũy các phép quay -> cuối cùng chứa vector riêng
     V = get_identity_matrix(n)
 
-    max_iterations = 100
     is_converged = False
 
     for _ in range(max_iterations):
@@ -76,7 +75,7 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> 
     
     return eigenvalues, V
 
-def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
+def svd_decompose(A: List[List[float]], max_iterations: int = 100) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
     Phân tách giá trị suy biến (Singular Value Decomposition - SVD) của một ma trận.
 
@@ -118,7 +117,7 @@ def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[fl
 
     # tìm trị riêng của A^T * A và vector riêng của V
     try:
-        lambdas, V = jacobi_eigenvalues(ATA)
+        lambdas, V = jacobi_eigenvalues(ATA, max_iterations)
     except ValueError as e:
         raise RuntimeError(f"SVD failed due to Jacobi eigenvalue error: {e}")
     
