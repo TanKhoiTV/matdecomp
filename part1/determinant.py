@@ -15,13 +15,11 @@ def determinant(A: Sequence[Sequence[float | int]]) -> float:
             raise ValueError("Ma trận phải là ma trận vuông.")
 
     mat: list[list[float]] = [[float(val) for val in row] for row in A]
-    
     max_abs_val = 0.0
     for row in mat:
         for val in row:
             if abs(val) > max_abs_val:
                 max_abs_val = abs(val)
-    
     tol = max(max_abs_val, 1.0) * sys.float_info.epsilon * 10
     swap_count: int = 0
 
