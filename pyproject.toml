@@ -1,7 +1,7 @@
 [project]
 name = "matdecomp"
 version = "0.1.0"
-description = "Add your description here"
+description = "From-scratch Python implementations of Gaussian elimination, SVD decomposition, and matrix diagonalization."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
