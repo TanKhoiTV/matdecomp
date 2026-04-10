@@ -29,6 +29,11 @@ Lỗi (raises ValueError):
 Phù hợp cho ma trận kích thước nhỏ–trung bình với phổ thực.
 """
 
+try:
+    from part1.inverse import inverse
+except ImportError:
+    from part1.inverse import inverse
+
 from __future__ import annotations
 
 from typing import List, Optional, Tuple
@@ -335,31 +340,6 @@ def null_space(A: List[List[float]]) -> List[float]:
     """Return one null-space vector, or an empty list if the null space is trivial."""
     b = null_space_basis(A)
     return b[0] if b else []
-
-
-def inverse(A: List[List[float]]) -> List[List[float]]:
-    """Gauss–Jordan trên [A | I]."""
-    n = len(A)
-    M = [A[i][:] + identity(n)[i][:] for i in range(n)]
-
-    for i in range(n):
-        pivot = i
-        while pivot < n and abs(M[pivot][i]) < EPS:
-            pivot += 1
-        if pivot == n:
-            raise ValueError("Matrix not invertible")
-
-        M[i], M[pivot] = M[pivot], M[i]
-
-        pivot_val = M[i][i]
-        M[i] = [x / pivot_val for x in M[i]]
-
-        for r in range(n):
-            if r != i:
-                factor = M[r][i]
-                M[r] = [M[r][c] - factor * M[i][c] for c in range(2 * n)]
-
-    return [row[n:] for row in M]
 
 # Main function: diagonalize
 def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
