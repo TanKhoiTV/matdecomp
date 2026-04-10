@@ -1,4 +1,4 @@
-from typing import List, Tuple, Any, Dict
+from typing import List, Tuple, Any, Dict, cast
 import sys
 import time
 import numpy as np
@@ -17,7 +17,7 @@ np.random.seed(42)
 #chuẩn hoá
 def solve_gaussian_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
     _, x, _ = gaussian_eliminate(A, b)
-    return np.array(x)
+    return cast(np.ndarray, np.array(x))
 
 
 def solve_svd_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
@@ -36,11 +36,12 @@ def solve_svd_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
     VT_arr: np.ndarray = np.array(VT)
     b_arr: np.ndarray = np.array(b)
 
-    return VT_arr.T @ Sigma_inv_arr @ U_arr.T @ b_arr
+    res = VT_arr.T @ Sigma_inv_arr @ U_arr.T @ b_arr
+    return cast(np.ndarray, res)
 
 
 def solve_gauss_seidel_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
-    return np.array(gauss_seidel(A, b))
+    return cast(np.ndarray, np.array(gauss_seidel(A, b)))
 
 
 #hàm sinh ma trận
