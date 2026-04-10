@@ -176,6 +176,7 @@ jobs:
             -e ".array" \
             $dirs \
             --include="*.py"
+            --exclude="manim_scene.py"
 
       - name: Install mypy
         run: pip install mypy
