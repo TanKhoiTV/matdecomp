@@ -1,33 +1,37 @@
 import numpy as np
-import math
-from determinant import determinant
+import pytest
+from inverse import inverse
 
 
-def test_determinant_2x2():
-    A = [[3, 8], [4, 6]]
-    assert math.isclose(determinant(A), float(np.linalg.det(A)), abs_tol=1e-9)
+def verify_inverse_matrix(A):
+    A_inv = inverse(A)
+    res = np.dot(np.array(A), np.array(A_inv))
+    assert np.allclose(res, np.eye(len(A)), atol=1e-9)
 
 
-def test_determinant_3x3():
-    A = [[6, 1, 1], [4, -2, 5], [2, 8, 7]]
-    assert math.isclose(determinant(A), float(np.linalg.det(A)), abs_tol=1e-9)
+def test_inverse_2x2():
+    verify_inverse_matrix([[4, 7], [2, 6]])
 
 
-def test_determinant_singular():
+def test_inverse_3x3():
+    verify_inverse_matrix([[1, 2, 3], [0, 1, 4], [5, 6, 0]])
+
+
+def test_inverse_identity():
+    verify_inverse_matrix(np.eye(3).tolist())
+
+
+def test_inverse_diagonal():
+    verify_inverse_matrix([[2, 0, 0], [0, 5, 0], [0, 0, 8]])
+
+
+def test_inverse_singular_raises_error():
     A = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    assert math.isclose(determinant(A), 0.0, abs_tol=1e-9)
+    with pytest.raises(ValueError):
+        inverse(A)
 
 
-def test_determinant_identity():
-    A = np.eye(4).tolist()
-    assert math.isclose(determinant(A), float(np.linalg.det(A)), abs_tol=1e-9)
-
-
-def test_determinant_negative():
-    A = [[0, 1], [1, 0]]
-    assert math.isclose(determinant(A), float(np.linalg.det(A)), abs_tol=1e-9)
-
-
-def test_determinant_zero_input():
-    A = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    assert math.isclose(determinant(A), 0.0, abs_tol=1e-9)
+def test_inverse_zero_input_raises_error():
+    A = [[0, 0], [0, 0]]
+    with pytest.raises(ValueError):
+        inverse(A)
