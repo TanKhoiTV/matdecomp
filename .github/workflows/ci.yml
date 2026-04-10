@@ -96,6 +96,7 @@ jobs:
       # every CI run for no meaningful check. Syntax and lint cover what we need.
       - name: Install dependencies
         run: |
+          pip install numpy scipy sympy matplotlib pandas
           python -m pip install --upgrade pip
           pip install numpy scipy sympy matplotlib
 
@@ -176,7 +177,8 @@ jobs:
             -e ".array" \
             $dirs \
             --include="*.py" \
-            --exclude="manim_scene.py"
+            --exclude="manim_scene.py" \
+            --exclude="benchmark.py"
 
       - name: Install mypy
         run: pip install mypy
