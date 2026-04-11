@@ -68,7 +68,11 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10, max
             V[i][q] = s * v_ip + c * v_iq
     
     if not is_converged:
-        raise ValueError(f"Numerical instability: Failed to converge within {max_iterations} iterations")
+        import warnings
+        warnings.warn(
+            f"Numerical instability: Failed to converge within {max_iterations} iterations. "
+            "Returning best approximation."
+        )
     
     # sau khi hội tụ, ma trận S gần như chéo -> các phần tử nằm trên đường chéo là trị riêng
     eigenvalues = [S[i][i] for i in range(n)]
@@ -117,7 +121,10 @@ def svd_decompose(A: List[List[float]], max_iterations: int = 100) -> Tuple[List
 
     # tìm trị riêng của A^T * A và vector riêng của V
     try:
-        lambdas, V = jacobi_eigenvalues(ATA, max_iterations)
+        lambdas, V = jacobi_eigenvalues(
+            ATA,
+            error_tolerance=1e-10,
+            max_iterations=max_iterations)
     except ValueError as e:
         raise RuntimeError(f"SVD failed due to Jacobi eigenvalue error: {e}")
     
