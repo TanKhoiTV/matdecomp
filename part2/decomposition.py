@@ -78,7 +78,7 @@ def jacobi_eigenvalues(
             f"Numerical instability: Failed to converge within {max_iterations} iterations. "
             "Returning best approximation."
         )
-    
+
     # sau khi hội tụ, ma trận S gần như chéo -> các phần tử nằm trên đường chéo là trị riêng
     eigenvalues = [S[i][i] for i in range(n)]
 
