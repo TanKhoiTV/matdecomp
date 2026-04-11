@@ -1,6 +1,9 @@
 from typing import List, Tuple
 
-def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
+
+def diagonalize(
+    A: List[List[float]],
+) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
     Chéo hóa ma trận vuông A sao cho:
         A = P D P^-1
@@ -16,12 +19,13 @@ def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[floa
     (tương đương tổng bội hình học bằng kích thước ma trận).
 
     Giá trị trả về:
-        tuple: (P, D, P_inv) 
+        tuple: (P, D, P_inv)
     P: ma trận chứa các vector riêng dưới dạng các cột
     D: ma trận đường chéo chứa các giá trị riêng
     P_inv: ma trận nghịch đảo của P
     """
-    # Method: Sử dụng phương pháp lặp lũy thừa để tính toán giá trị riêng và vector riêng
+    # Method: Sử dụng phương pháp lặp lũy thừa để tính toán giá trị riêng
+    # và vector riêng
 
     # TODO:
     # - Kiểm tra A có phải ma trận vuông hay không
@@ -33,5 +37,5 @@ def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[floa
     P: List[List[float]] = [[]]
     D: List[List[float]] = [[]]
     P_inv: List[List[float]] = [[]]
-    
+
     return P, D, P_inv
