@@ -8,12 +8,13 @@ import traceback
 
 
 # Đảm bảo đường dẫn import đúng cấu trúc thư mục
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from part1.gaussian import gaussian_eliminate
-from part2.decomposition import svd_decompose
-from part3.solvers import gauss_seidel
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from part1.gaussian import gaussian_eliminate  # noqa: E402
+from part2.decomposition import svd_decompose  # noqa: E402
+from part3.solvers import gauss_seidel  # noqa: E402
 
 np.random.seed(42)
+
 
 # chuẩn hoá
 def solve_gaussian_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
@@ -22,12 +23,12 @@ def solve_gaussian_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
 
 
 def solve_svd_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
-    U, Sigma, VT = svd_decompose(A, 2000000) #max_iterations = 2.000.000 (jacobi)
+    U, Sigma, VT = svd_decompose(A, 2000000)  # max_iterations = 2.000.000 (jacobi)
 
     m: int = len(Sigma)
     n: int = len(Sigma[0])
 
-    Sigma_inv: List[List[float]] = [[0.0]*m for _ in range(n)]
+    Sigma_inv: List[List[float]] = [[0.0] * m for _ in range(n)]
     for i in range(min(m, n)):
         if abs(Sigma[i][i]) > 1e-12:
             Sigma_inv[i][i] = 1.0 / Sigma[i][i]
@@ -46,7 +47,9 @@ def solve_gauss_seidel_wrapper(A: List[List[float]], b: List[float]) -> np.ndarr
 
 
 # hàm sinh ma trận
-def generate_system(n: int, matrix_type: str = "SPD") -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def generate_system(
+    n: int, matrix_type: str = "SPD"
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     if matrix_type == "SPD":
         M: np.ndarray = np.random.rand(n, n)
         A = M.T @ M + n * np.eye(n)
@@ -71,9 +74,9 @@ def run_benchmark() -> None:
     results: List[Dict[str, Any]] = []
 
     solvers: Dict[str, Any] = {
-        'Gaussian': solve_gaussian_wrapper,
-        'SVD': solve_svd_wrapper,
-        'Gauss-Seidel': solve_gauss_seidel_wrapper
+        "Gaussian": solve_gaussian_wrapper,
+        "SVD": solve_svd_wrapper,
+        "Gauss-Seidel": solve_gauss_seidel_wrapper,
     }
 
     for mtype in matrix_types:
@@ -89,25 +92,27 @@ def run_benchmark() -> None:
             A, b, x_true = generate_system(n, mtype)
             cond_A: float = float(np.linalg.cond(A))
 
-            A_list: List[List[float]] = A.tolist()
-            b_list: List[float] = b.tolist()
+            A_list: List[List[float]] = cast(List[List[float]], A.tolist())
+            b_list: List[float] = cast(List[float], b.tolist())
 
             for name, solver in solvers.items():
 
                 # skip khi SVD lớn có thể dẫn đến treo
-                if name == 'SVD' and n >= 500:
+                if name == "SVD" and n >= 500:
                     print(f"  Skip {name}")
-                    results.append({
-                        'matrix_type': mtype,
-                        'n': n,
-                        'solver': name,
-                        'cond(A)': cond_A,
-                        'mean_time_s': np.nan,
-                        'std_time_s': np.nan,
-                        'residual_error': np.nan,
-                        'solution_error': np.nan,
-                        'status': 'Skipped'
-                    })
+                    results.append(
+                        {
+                            "matrix_type": mtype,
+                            "n": n,
+                            "solver": name,
+                            "cond(A)": cond_A,
+                            "mean_time_s": np.nan,
+                            "std_time_s": np.nan,
+                            "residual_error": np.nan,
+                            "solution_error": np.nan,
+                            "status": "Skipped",
+                        }
+                    )
                     continue
 
                 times: List[float] = []
@@ -118,19 +123,21 @@ def run_benchmark() -> None:
                 except (ValueError, RuntimeError) as expected_err:
                     print(f"  Expected Error in {name} (warm-up):")
                     traceback.print_exc()
-                    results.append({
-                        'matrix_type': mtype,
-                        'n': n,
-                        'solver': name,
-                        'cond(A)': cond_A,
-                        'mean_time_s': np.nan,
-                        'std_time_s': np.nan,
-                        'residual_error': np.nan,
-                        'solution_error': np.nan,
-                        'status': f"Failed: {type(expected_err).__name__}"
-                    })
+                    results.append(
+                        {
+                            "matrix_type": mtype,
+                            "n": n,
+                            "solver": name,
+                            "cond(A)": cond_A,
+                            "mean_time_s": np.nan,
+                            "std_time_s": np.nan,
+                            "residual_error": np.nan,
+                            "solution_error": np.nan,
+                            "status": f"Failed: {type(expected_err).__name__}",
+                        }
+                    )
                     continue
-                except Exception as unexpected_err:
+                except Exception as unexpected_err:  # noqa: F841
                     print(f"  Unexpected fatal error in {name} (warm-up):")
                     traceback.print_exc()
                     raise
@@ -158,24 +165,26 @@ def run_benchmark() -> None:
                 else:
                     solution_error = float(np.linalg.norm(x_hat - x_true) / norm_x)
 
-                results.append({
-                    'matrix_type': mtype,
-                    'n': n,
-                    'solver': name,
-                    'cond(A)': cond_A,
-                    'mean_time_s': mean_time,
-                    'std_time_s': std_time,
-                    'residual_error': residual,
-                    'solution_error': solution_error,
-                    'status': 'Success'
-                })
+                results.append(
+                    {
+                        "matrix_type": mtype,
+                        "n": n,
+                        "solver": name,
+                        "cond(A)": cond_A,
+                        "mean_time_s": mean_time,
+                        "std_time_s": std_time,
+                        "residual_error": residual,
+                        "solution_error": solution_error,
+                        "status": "Success",
+                    }
+                )
 
                 print(f"  Done {name}")
 
     # save
-    os.makedirs('part3', exist_ok=True)
+    os.makedirs("part3", exist_ok=True)
     df = pd.DataFrame(results)
-    df.to_csv('part3/results.csv', index=False)
+    df.to_csv("part3/results.csv", index=False)
 
     print("\n Saved to part3/results.csv")
 
