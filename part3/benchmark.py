@@ -94,7 +94,7 @@ def run_benchmark() -> None:
             for name, solver in solvers.items():
 
                 # skip khi SVD lớn có thể dẫn đến treo
-                if name == 'SVD' and n >= 500:
+                if name == 'SVD' and n >= 1000:
                     print(f"  Skip {name}")
                     results.append({
                         'matrix_type': mtype,
