@@ -1,14 +1,32 @@
 """
 Chéo hóa ma trận vuông thực A ≈ P D P^{-1} (triển khai thuần list, không NumPy).
 
-Thuật toán: QR (Modified Gram-Schmidt) + QR có shift Wilkinson + deflation → trị riêng;
-gom cụm trị riêng gần nhau; cơ sở ker(A - λI); Gauss-Jordan cho P^{-1}; kiểm tra Frobenius.
+Thuật toán:
+- Nếu A đối xứng: sử dụng Jacobi để tính trị riêng
+  và vector riêng trực chuẩn (P^{-1} = P^T).
+- Nếu A không đối xứng: sử dụng QR algorithm (Modified Gram-Schmidt) với
+  Wilkinson shift và deflation để tính trị riêng, sau đó tìm vector riêng
+  thông qua không gian nghiệm của (A - λI).
 
-Phạm vi: ma trận thực chéo hóa được trên R. 
-Phổ phức được phát hiện sớm đối với ma trận 2*2 thông qua biệt thức; 
-đối với kích thước lớn hơn, việc phát hiện phổ phức không được đảm bảo.
+Các bước chính:
+- Gom cụm trị riêng gần nhau (xử lý bội số)
+- Tính cơ sở không gian riêng (null space)
+- Xây dựng P, D và tính P^{-1} bằng Gauss–Jordan
+- Kiểm tra lại A ≈ P D P^{-1} bằng chuẩn Frobenius
 
-Phương pháp phù hợp cho ma trận kích thước nhỏ-trung bình với phổ thực.
+Phạm vi:
+- Hỗ trợ ma trận vuông thực chéo hóa được trên R
+- Phát hiện phổ phức:
+  + Chính xác với ma trận 2×2 (qua biệt thức)
+  + Với n > 2: không đảm bảo phát hiện đầy đủ, có thể fail ở bước kiểm tra
+
+Lỗi (raises ValueError):
+- Ma trận không vuông hoặc không hợp lệ
+- Ma trận không chéo hóa được (thiếu vector riêng độc lập)
+- Phát hiện trị riêng phức (trong trường hợp hỗ trợ)
+- Sai số tái tạo vượt ngưỡng cho phép
+
+Phù hợp cho ma trận kích thước nhỏ–trung bình với phổ thực.
 """
 
 from __future__ import annotations
@@ -16,8 +34,16 @@ from __future__ import annotations
 from typing import List, Optional, Tuple
 import math
 
+from part1.inverse import inverse
+
+try:
+    from .decomposition import jacobi_eigenvalues
+except ImportError:
+    from decomposition import jacobi_eigenvalues
+
 __all__ = [
     "diagonalize",
+    "jacobi_eigenvalues",
     "matmul",
     "identity",
     "subtract",
@@ -33,7 +59,7 @@ __all__ = [
 
 EPS = 1e-10
 MAX_ITER = 3000
-RECON_TOL = 1e-8
+RECON_TOL = 1e-10
 CLUSTER_ABS_TOL = 1e-7
 CLUSTER_REL_TOL = 1e-6
 
@@ -101,6 +127,11 @@ def scalar_mult(A: List[List[float]], c: float) -> List[List[float]]:
     return [[c * A[i][j] for j in range(n)] for i in range(n)]
 
 
+def transpose(A: List[List[float]]) -> List[List[float]]:
+    """Return the transpose of a matrix."""
+    return [[A[j][i] for j in range(len(A))] for i in range(len(A[0]))]
+
+
 def norm(v: List[float]) -> float:
     """
     Compute the Euclidean (L2) norm of a vector.
@@ -112,6 +143,48 @@ def norm(v: List[float]) -> float:
         float: The Euclidean norm (sqrt of the sum of squares of the components), which is greater than or equal to 0.
     """
     return math.sqrt(sum(x * x for x in v))
+
+
+def _is_symmetric(A: List[List[float]]) -> bool:
+    """Check whether A is symmetric within the module tolerance."""
+    n = len(A)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if abs(A[i][j] - A[j][i]) > EPS:
+                return False
+    return True
+
+
+def _sort_eigendecomposition(
+    eigenvalues: List[float], eigenvectors: List[List[float]]
+) -> Tuple[List[float], List[List[float]]]:
+    """Sort eigenvalues ascending and reorder eigenvector columns to match."""
+    order = sorted(range(len(eigenvalues)), key=lambda i: eigenvalues[i])
+    sorted_values = [eigenvalues[i] for i in order]
+    sorted_vectors = [[eigenvectors[row][i] for i in order] for row in range(len(eigenvectors))]
+    return sorted_values, sorted_vectors
+
+
+def _verify_diagonalization(
+    A: List[List[float]],
+    P: List[List[float]],
+    D: List[List[float]],
+    P_inv: List[List[float]],
+) -> None:
+    """Raise ValueError if P D P^{-1} does not reconstruct A accurately enough."""
+    n = len(A)
+    reconstructed = matmul(matmul(P, D), P_inv)
+    diff = subtract(reconstructed, A)
+
+    err = math.sqrt(sum(diff[i][j] ** 2 for i in range(n) for j in range(n)))
+    base = math.sqrt(sum(A[i][j] ** 2 for i in range(n) for j in range(n)))
+
+    rel = err / max(base, 1e-30)
+    if rel > RECON_TOL:
+        raise ValueError(
+            f"Decomposition verification failed: relative Frobenius error {rel:.3e} "
+            f"exceeds tolerance {RECON_TOL:.3e}"
+        )
 
 
 def _has_nonreal_eigenvalues(A: List[List[float]], n: int) -> bool:
@@ -171,6 +244,26 @@ def _cluster_eigenvalue_indices(vals: List[float]) -> List[List[int]]:
     return clusters
 
 
+def _orthonormal_completion_column(Q: List[List[float]], col_idx: int) -> List[float]:
+    """Complete Q with a unit vector orthogonal to the earlier columns."""
+    n = len(Q)
+    previous_cols = [[Q[row][j] for row in range(n)] for j in range(col_idx)]
+
+    for basis_idx in range(n):
+        candidate = [0.0] * n
+        candidate[basis_idx] = 1.0
+
+        for prev in previous_cols:
+            proj = sum(candidate[r] * prev[r] for r in range(n))
+            candidate = [candidate[r] - proj * prev[r] for r in range(n)]
+
+        candidate_norm = norm(candidate)
+        if candidate_norm > EPS:
+            return [x / candidate_norm for x in candidate]
+
+    raise ValueError(f"Failed to construct an orthonormal completion vector for column {col_idx}")
+
+
 def qr_decomposition(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]]]:
     """
     Compute the QR decomposition of a square matrix using the modified Gram–Schmidt process.
@@ -187,9 +280,11 @@ def qr_decomposition(A: List[List[float]]) -> Tuple[List[List[float]], List[List
     for i in range(n):
         R[i][i] = norm(V[i])
         if R[i][i] < EPS:
-            continue
+            Q_col = _orthonormal_completion_column(Q, i)
+            R[i][i] = 0.0
+        else:
+            Q_col = [x / R[i][i] for x in V[i]]
 
-        Q_col = [x / R[i][i] for x in V[i]]
         for r in range(n):
             Q[r][i] = Q_col[r]
 
@@ -267,9 +362,10 @@ def qr_algorithm(A: List[List[float]]) -> List[float]:
             Ak = subtract(Ak, scalar_mult(I, -mu))
 
         if not converged:
-            eigenvalues.append(Ak[size - 1][size - 1])
-            size -= 1
-            Ak = [row[:size] for row in Ak[:size]]
+            raise ValueError(
+                f"QR iteration failed to converge after {MAX_ITER} iterations "
+                f"for the trailing {size}x{size} block"
+            )
 
     return eigenvalues
 
@@ -346,42 +442,6 @@ def null_space(A: List[List[float]]) -> List[float]:
     b = null_space_basis(A)
     return b[0] if b else []
 
-
-def inverse(A: List[List[float]]) -> List[List[float]]:
-    """
-    Compute the inverse of a square matrix by performing Gauss–Jordan elimination on the augmented matrix [A | I].
-    
-    Parameters:
-        A (List[List[float]]): Square n×n matrix to invert.
-    
-    Returns:
-        List[List[float]]: The n×n inverse of A.
-    
-    Raises:
-        ValueError: If A is not invertible (no suitable pivot found).
-    """
-    n = len(A)
-    M = [A[i][:] + identity(n)[i][:] for i in range(n)]
-
-    for i in range(n):
-        pivot = i
-        while pivot < n and abs(M[pivot][i]) < EPS:
-            pivot += 1
-        if pivot == n:
-            raise ValueError("Matrix not invertible")
-
-        M[i], M[pivot] = M[pivot], M[i]
-
-        pivot_val = M[i][i]
-        M[i] = [x / pivot_val for x in M[i]]
-
-        for r in range(n):
-            if r != i:
-                factor = M[r][i]
-                M[r] = [M[r][c] - factor * M[i][c] for c in range(2 * n)]
-
-    return [row[n:] for row in M]
-
 # Main function: diagonalize
 def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
@@ -415,6 +475,19 @@ def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[floa
         raise ValueError(
             "Matrix has complex eigenvalues; cannot diagonalize over the real numbers"
         )
+
+    if _is_symmetric(A):
+        eigenvalues, eigenvectors = jacobi_eigenvalues([row[:] for row in A], EPS)
+        eigenvalues, eigenvectors = _sort_eigendecomposition(eigenvalues, eigenvectors)
+
+        P = eigenvectors
+        P_inv = transpose(P)
+        D = [[0.0] * n for _ in range(n)]
+        for i in range(n):
+            D[i][i] = eigenvalues[i]
+
+        _verify_diagonalization(A, P, D, P_inv)
+        return P, D, P_inv
 
     eigenvalues = qr_algorithm(A)
     if len(eigenvalues) != n:
@@ -451,17 +524,6 @@ def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[floa
     for i in range(n):
         D[i][i] = eigenvalues[i]
 
-    reconstructed = matmul(matmul(P, D), P_inv)
-    diff = subtract(reconstructed, A)
-
-    err = math.sqrt(sum(diff[i][j] ** 2 for i in range(n) for j in range(n)))
-    base = math.sqrt(sum(A[i][j] ** 2 for i in range(n) for j in range(n)))
-
-    rel = err / max(base, 1e-30)
-    if rel > RECON_TOL:
-        raise ValueError(
-            f"Decomposition verification failed: relative Frobenius error {rel:.3e} "
-            f"exceeds tolerance {RECON_TOL:.3e}"
-        )
+    _verify_diagonalization(A, P, D, P_inv)
 
     return P, D, P_inv
