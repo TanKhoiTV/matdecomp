@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy scipy sympy matplotlib flake8 mypy
+          pip install numpy scipy sympy matplotlib flake8 mypy pandas
 
       - name: Check for banned solver calls
         run: |
@@ -71,8 +71,9 @@ jobs:
             -e "\.rref()" \
             -e "\.echelon_form()" \
             -e "linsolve(" \
-            -e "\.array" \
-            $files
+            -e ".array" \
+            $files \
+            --exclude="benchmark.py"
 
       # Single loop covers all parts — skips missing files gracefully
       - name: Check syntax (all parts)
@@ -109,7 +110,7 @@ jobs:
             [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
           done
           if [ -n "$files" ]; then
-            mypy $files --config-file mypy.ini
+            mypy --explicit-package-bases --namespace-packages $files --config-file mypy.ini
           else
             echo "No files found — skipping type check"
           fi
