@@ -1,72 +1,3 @@
-# .github/workflows/ci.yml
-#
-# Runs on every pull request opened against dev or main.
-# Checks Python syntax and lints with flake8.
-# Manim is intentionally excluded — see note at bottom of file.
-#
-# ── YAML GOTCHAS ──────────────────────────────────────────────────────────────
-#
-# 1. INDENTATION IS EVERYTHING
-#    YAML uses spaces only — never tabs. Two spaces per level, consistently.
-#    A single tab character anywhere in this file will break the entire workflow
-#    with a cryptic parse error. If something mysteriously fails, check tabs first.
-#
-#    Correct:
-#      jobs:
-#        check:           ← 2 spaces
-#          runs-on: ...   ← 4 spaces
-#
-#    Wrong (tab characters):
-#      jobs:
-#          check:           ← tab, looks fine in some editors, breaks GitHub
-#
-# 2. COLONS INSIDE STRINGS MUST BE QUOTED
-#    Bare colons confuse the YAML parser into thinking a new key is starting.
-#
-#    Wrong:  run: echo hello: world
-#    Right:  run: echo "hello: world"
-#
-# 3. MULTILINE run: BLOCKS USE THE PIPE CHARACTER
-#    The | character means "treat everything indented below as a single string,
-#    preserving newlines." Each command goes on its own line.
-#
-#    Correct:
-#      run: |
-#        pip install numpy
-#        pip install flake8
-#
-#    Wrong (everything on one line with &&):
-#      run: pip install numpy && pip install flake8  ← works but unreadable
-#
-# 4. ACTION VERSIONS MUST BE PINNED
-#    actions/checkout@v4 is pinned to major version 4. Do not use @main or @master
-#    (unpinned) — those float to whatever the latest commit is and can break
-#    without warning. If GitHub logs show "Unable to find action", the version
-#    tag may have been deprecated — update to the current major version.
-#
-# 5. THE WORKFLOW FILE PATH IS EXACT
-#    This file must live at exactly: .github/workflows/ci.yml
-#    GitHub will silently ignore it if the folder name is wrong (e.g. .Github/,
-#    .github/workflow/, or .github/Workflows/).
-#
-# 6. STATUS CHECK NAME MUST MATCH BRANCH PROTECTION
-#    The job name below is "check". When you add a required status check in
-#    branch protection settings, search for "check" exactly — it must match
-#    the job: key in this file, not the workflow name: key at the top.
-#
-# 7. FIRST RUN MAY SHOW "EXPECTED — WAITING" IN BRANCH PROTECTION
-#    After adding a required status check, GitHub waits for the check to run
-#    at least once before enforcing it. Open a test PR to trigger the first run.
-#    Until then, the protection rule exists but is not yet blocking merges.
-#
-# 8. SECRETS AND TOKENS
-#    This workflow does not use any secrets. If you ever add a step that needs
-#    one (e.g. uploading an artifact, posting a comment), add it under:
-#    Settings → Secrets and variables → Actions → New repository secret
-#    Never hardcode tokens or passwords directly in this file.
-#
-# ─────────────────────────────────────────────────────────────────────────────
-
 name: CI
 
 on:
@@ -75,97 +6,64 @@ on:
       - dev
       - main
 
+env:
+  PART1_FILES: part1/gaussian.py part1/determinant.py part1/inverse.py part1/rank_basis.py
+  PART2_FILES: part2/decomposition.py part2/diagonalization.py part2/theme.py
+  PART3_FILES: part3/solvers.py part3/benchmark.py
+
 jobs:
+  # ── Fast gates: run first, fail before any install cost ─────────────────────
+  pre-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name
+        if: github.event_name == 'pull_request' && github.head_ref != 'dev'
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          if ! echo "$BRANCH" | grep -qE '^(feat|fix|docs|test|refactor|chore)/.+'; then
+            echo "::error::Branch '$BRANCH' must start with feat|fix|docs|test|refactor|chore/"
+            exit 1
+          fi
+
+  # ── Main quality checks ──────────────────────────────────────────────────────
   check:
     runs-on: ubuntu-latest
+    needs: pre-check
 
     steps:
-      # Step 1: Check out the branch being reviewed
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Set up the Python version
-      # Pinned to 3.12 — stable, fast to provision, compatible with Manim 0.20.1
-      - name: Set up Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      # Step 3: Upgrade pip and install project dependencies
-      # Manim is excluded — it requires FFmpeg and Cairo which add 3-5 min to
-      # every CI run for no meaningful check. Syntax and lint cover what we need.
+      # Cache the pip install — skips re-downloading on unchanged requirements
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('.github/workflows/ci.yml') }}
+          restore-keys: pip-${{ runner.os }}-
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy scipy sympy matplotlib
-
-      # Step 4: Install flake8 separately so install failures are easy to isolate
-      - name: Install flake8
-        run: pip install flake8
-
-      # Step 5: Syntax check — catches import errors and broken files before review.
-      # Each file is only compiled if it exists; missing files are skipped gracefully.
-      - name: Check syntax — Part 1
-        run: |
-          for f in part1/gaussian.py part1/determinant.py part1/inverse.py part1/rank_basis.py; do
-            if [ -f "$f" ]; then
-              python -m py_compile "$f" && echo "OK: $f"
-            else
-              echo "Skipping $f (not found)"
-            fi
-          done
-
-      - name: Check syntax — Part 2
-        run: |
-          for f in part2/decomposition.py part2/diagonalization.py part2/theme.py; do
-            if [ -f "$f" ]; then
-              python -m py_compile "$f" && echo "OK: $f"
-            else
-              echo "Skipping $f (not found)"
-            fi
-          done
-
-      - name: Check syntax — Part 3 (bonus only)
-        run: |
-          for f in part3/solvers.py part3/benchmark.py; do
-            if [ -f "$f" ]; then
-              python -m py_compile "$f" && echo "OK: $f"
-            else
-              echo "Skipping $f (not found)"
-            fi
-          done
-
-      # Step 6: Lint with flake8
-      # --max-line-length=100   : allows slightly longer lines than PEP8's 79
-      # --ignore=E501           : don't double-flag long lines (max-line-length handles it)
-      # --ignore=W503           : line break before binary operator — stylistic, not an error
-      # --exclude=.venv         : never lint the virtual environment folder
-      # The directory is only linted if it exists; missing dirs are skipped gracefully.
-      - name: Lint with flake8
-        run: |
-          if [ -d "part1/" ]; then
-            flake8 part1/ \
-              --max-line-length=100 \
-              --ignore=E501,W503 \
-              --exclude=.venv
-          else
-            echo "Skipping lint — part1/ not found"
-          fi
+          pip install numpy scipy sympy matplotlib flake8 mypy
 
       - name: Check for banned solver calls
         run: |
-          # Build the list of directories that actually exist
-          dirs=""
-          for d in part1/ part2/ part3/; do
-            [ -d "$d" ] && dirs="$dirs $d"
+          files=""
+          for f in $PART1_FILES $PART2_FILES $PART3_FILES; do
+            [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
           done
-
-          if [ -z "$dirs" ]; then
-            echo "No part directories found — skipping banned solver check"
+          if [ -z "$files" ]; then
+            echo "No files found — skipping banned solver check"
             exit 0
           fi
-
-          ! grep -rn \
+          ! grep -n \
             -e "linalg\.solve" \
             -e "linalg\.inv" \
             -e "scipy\.linalg\.qr" \
@@ -173,58 +71,45 @@ jobs:
             -e "\.rref()" \
             -e "\.echelon_form()" \
             -e "linsolve(" \
-            -e ".array" \
-            $dirs \
-            --include="*.py" \
-            --exclude="manim_scene.py"
+            -e "\.array" \
+            $files
 
-      - name: Install mypy
-        run: pip install mypy
+      # Single loop covers all parts — skips missing files gracefully
+      - name: Check syntax (all parts)
+        run: |
+          for f in $PART1_FILES $PART2_FILES $PART3_FILES; do
+            if [ -f "$f" ]; then
+              python -m py_compile "$f" && echo "OK: $f"
+            else
+              echo "Skipping $f (not found)"
+            fi
+          done
 
-      # Type-check steps collect only the files that actually exist, then run
-      # mypy once against all of them. The step is skipped entirely if none exist.
-      - name: Type check — Part 1
+      # Lint only the directories that exist
+      - name: Lint with flake8
+        run: |
+          dirs=""
+          for d in part1/ part2/ part3/; do
+            [ -d "$d" ] && dirs="$dirs $d"
+          done
+          if [ -n "$dirs" ]; then
+            flake8 $dirs \
+              --max-line-length=100 \
+              --ignore=E501,W503 \
+              --exclude=.venv
+          else
+            echo "No part directories found — skipping lint"
+          fi
+
+      # Single mypy call across all existing files — avoids 3 separate invocations
+      - name: Type check (all parts)
         run: |
           files=""
-          for f in part1/gaussian.py part1/determinant.py part1/inverse.py part1/rank_basis.py; do
+          for f in $PART1_FILES $PART2_FILES $PART3_FILES; do
             [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
           done
           if [ -n "$files" ]; then
             mypy $files --config-file mypy.ini
           else
-            echo "No Part 1 files found — skipping type check"
-          fi
-
-      - name: Type check — Part 2
-        run: |
-          files=""
-          for f in part2/decomposition.py part2/diagonalization.py part2/theme.py; do
-            [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
-          done
-          if [ -n "$files" ]; then
-            mypy $files --config-file mypy.ini
-          else
-            echo "No Part 2 files found — skipping type check"
-          fi
-
-      - name: Type check — Part 3
-        run: |
-          files=""
-          for f in part3/solvers.py part3/benchmark.py; do
-            [ -f "$f" ] && files="$files $f" || echo "Skipping $f (not found)"
-          done
-          if [ -n "$files" ]; then
-            mypy $files --config-file mypy.ini
-          else
-            echo "No Part 3 files found — skipping type check"
-          fi
-
-      - name: Check branch name
-        if: github.event_name == 'pull_request' && github.head_ref != 'dev'
-        run: |
-          BRANCH="${{ github.head_ref }}"
-          if ! echo "$BRANCH" | grep -qE '^(feat|fix|docs|test|refactor|chore)/.+'; then
-            echo "Branch name '$BRANCH' does not follow naming convention."
-            echo "Expected: feat/, fix/, docs/, test/, refactor/, or chore/"
-            exit 1
+            echo "No files found — skipping type check"
           fi
