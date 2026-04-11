@@ -18,8 +18,9 @@ jobs:
     steps:
       - name: Check branch name
         if: github.event_name == 'pull_request' && github.head_ref != 'dev'
+        env:
+          BRANCH: ${{ github.head_ref }}
         run: |
-          BRANCH="${{ github.head_ref }}"
           if ! echo "$BRANCH" | grep -qE '^(feat|fix|docs|test|refactor|chore)/.+'; then
             echo "::error::Branch '$BRANCH' must start with feat|fix|docs|test|refactor|chore/"
             exit 1
