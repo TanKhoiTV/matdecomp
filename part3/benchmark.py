@@ -4,6 +4,7 @@ import time
 import numpy as np
 import pandas as pd
 import os
+import traceback
 
 
 # Đảm bảo đường dẫn import đúng cấu trúc thư mục
@@ -14,14 +15,14 @@ from part3.solvers import gauss_seidel
 
 np.random.seed(42)
 
-#chuẩn hoá
+# chuẩn hoá
 def solve_gaussian_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
     _, x, _ = gaussian_eliminate(A, b)
     return cast(np.ndarray, np.array(x))
 
 
 def solve_svd_wrapper(A: List[List[float]], b: List[float]) -> np.ndarray:
-    U, Sigma, VT = svd_decompose(A, 20000) #max_iterations = 20000 (jacobi)
+    U, Sigma, VT = svd_decompose(A, 2000000) #max_iterations = 2.000.000 (jacobi)
 
     m: int = len(Sigma)
     n: int = len(Sigma[0])
@@ -44,11 +45,11 @@ def solve_gauss_seidel_wrapper(A: List[List[float]], b: List[float]) -> np.ndarr
     return cast(np.ndarray, np.array(gauss_seidel(A, b)))
 
 
-#hàm sinh ma trận
+# hàm sinh ma trận
 def generate_system(n: int, matrix_type: str = "SPD") -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     if matrix_type == "SPD":
-        A: np.ndarray = np.random.rand(n, n)
-        A = A + n * np.eye(n)
+        M: np.ndarray = np.random.rand(n, n)
+        A = M.T @ M + n * np.eye(n)
 
     elif matrix_type == "Hilbert":
         A = np.array([[1 / (i + j + 1) for j in range(n)] for i in range(n)])
@@ -94,7 +95,7 @@ def run_benchmark() -> None:
             for name, solver in solvers.items():
 
                 # skip khi SVD lớn có thể dẫn đến treo
-                if name == 'SVD' and n >= 1000:
+                if name == 'SVD' and n >= 500:
                     print(f"  Skip {name}")
                     results.append({
                         'matrix_type': mtype,
@@ -104,7 +105,8 @@ def run_benchmark() -> None:
                         'mean_time_s': np.nan,
                         'std_time_s': np.nan,
                         'residual_error': np.nan,
-                        'solution_error': np.nan
+                        'solution_error': np.nan,
+                        'status': 'Skipped'
                     })
                     continue
 
@@ -113,9 +115,25 @@ def run_benchmark() -> None:
                 # warm-up
                 try:
                     solver(A_list, b_list)
-                except Exception as e:
-                    print(f"  Error: {e}")
+                except (ValueError, RuntimeError) as expected_err:
+                    print(f"  Expected Error in {name} (warm-up):")
+                    traceback.print_exc()
+                    results.append({
+                        'matrix_type': mtype,
+                        'n': n,
+                        'solver': name,
+                        'cond(A)': cond_A,
+                        'mean_time_s': np.nan,
+                        'std_time_s': np.nan,
+                        'residual_error': np.nan,
+                        'solution_error': np.nan,
+                        'status': f"Failed: {type(expected_err).__name__}"
+                    })
                     continue
+                except Exception as unexpected_err:
+                    print(f"  Unexpected fatal error in {name} (warm-up):")
+                    traceback.print_exc()
+                    raise
 
                 x_hat: np.ndarray = np.array([])
                 for _ in range(5):
@@ -148,7 +166,8 @@ def run_benchmark() -> None:
                     'mean_time_s': mean_time,
                     'std_time_s': std_time,
                     'residual_error': residual,
-                    'solution_error': solution_error
+                    'solution_error': solution_error,
+                    'status': 'Success'
                 })
 
                 print(f"  Done {name}")
@@ -156,10 +175,9 @@ def run_benchmark() -> None:
     # save
     os.makedirs('part3', exist_ok=True)
     df = pd.DataFrame(results)
-    df.to_csv('part3/results_full.csv', index=False)
+    df.to_csv('part3/results.csv', index=False)
 
-    print("\n Saved to part3/results_full.csv")
-
+    print("\n Saved to part3/results.csv")
 
 
 if __name__ == "__main__":
