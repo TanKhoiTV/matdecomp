@@ -355,11 +355,11 @@ def qr_algorithm(A: List[List[float]]) -> List[float]:
                 break
 
             mu = wilkinson_shift(Ak)
-            I = identity(size)
-            shifted = subtract(Ak, scalar_mult(I, mu))
+            I_mat = identity(size)
+            shifted = subtract(Ak, scalar_mult(I_mat, mu))
             Q, R = qr_decomposition(shifted)
             Ak = matmul(R, Q)
-            Ak = subtract(Ak, scalar_mult(I, -mu))
+            Ak = subtract(Ak, scalar_mult(I_mat, -mu))
 
         if not converged:
             raise ValueError(
@@ -441,6 +441,9 @@ def null_space(A: List[List[float]]) -> List[float]:
     """
     b = null_space_basis(A)
     return b[0] if b else []
+
+
+
 
 # Main function: diagonalize
 def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
