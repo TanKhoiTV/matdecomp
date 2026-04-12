@@ -443,8 +443,6 @@ def null_space(A: List[List[float]]) -> List[float]:
     return b[0] if b else []
 
 
-
-
 # Main function: diagonalize
 def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
@@ -530,4 +528,3 @@ def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[floa
     _verify_diagonalization(A, P, D, P_inv)
 
     return P, D, P_inv
-
