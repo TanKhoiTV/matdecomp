@@ -37,9 +37,9 @@ import math
 from part1.inverse import inverse
 
 try:
-    from .decomposition import jacobi_eigenvalues as jacobi_eigenvalues
+    from .decomposition import jacobi_eigenvalues
 except ImportError:
-    from decomposition import jacobi_eigenvalues as jacobi_eigenvalues
+    from decomposition import jacobi_eigenvalues
 
 __all__ = [
     "diagonalize",
