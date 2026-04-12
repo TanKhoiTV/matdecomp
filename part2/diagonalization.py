@@ -36,10 +36,7 @@ import math
 
 from part1.inverse import inverse
 
-try:
-    from .decomposition import jacobi_eigenvalues as _jacobi
-except ImportError:
-    from decomposition import jacobi_eigenvalues as _jacobi
+from part2.decomposition import jacobi_eigenvalues
 
 __all__ = [
     "diagonalize",
@@ -478,7 +475,7 @@ def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[floa
         )
 
     if _is_symmetric(A):
-        eigenvalues, eigenvectors = _jacobi([row[:] for row in A], EPS)
+        eigenvalues, eigenvectors = jacobi_eigenvalues([row[:] for row in A], EPS)
         eigenvalues, eigenvectors = _sort_eigendecomposition(eigenvalues, eigenvectors)
 
         P = eigenvectors
