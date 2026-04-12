@@ -1,9 +1,10 @@
 from typing import List, Tuple
-from math import atan2, sin, cos, sqrt
+from math import atan2, sin, cos, sqrt, isnan
 
 
 def transpose(A: List[List[float]]) -> List[List[float]]:
     return [[A[j][i] for j in range(len(A))] for i in range(len(A[0]))]
+
 
 def multiply(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
     m, p = len(A), len(B[0])
@@ -15,16 +16,19 @@ def multiply(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
                 result[i][j] += A[i][k] * B[k][j]
     return result
 
+
 def get_identity_matrix(n: int) -> List[List[float]]:
     return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
 
-def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> Tuple[List[float], List[List[float]]]:
+
+def jacobi_eigenvalues(
+    S: List[List[float]], error_tolerance: float = 1e-10, max_iterations: int = 100
+) -> Tuple[List[float], List[List[float]]]:
     n = len(S)
 
     # V tích lũy các phép quay -> cuối cùng chứa vector riêng
     V = get_identity_matrix(n)
 
-    max_iterations = 100
     is_converged = False
 
     for _ in range(max_iterations):
@@ -50,8 +54,8 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> 
 
         s_pp, s_qq = S[p][p], S[q][q]
         # công thức biến đổi tương tự A' = J^T * A * J
-        S[p][p] = c ** 2 * s_pp - 2 * s * c * S[p][q] + s ** 2 * s_qq
-        S[q][q] = s ** 2 * s_pp + 2 * s * c * S[p][q] + c ** 2 * s_qq
+        S[p][p] = c**2 * s_pp - 2 * s * c * S[p][q] + s**2 * s_qq
+        S[q][q] = s**2 * s_pp + 2 * s * c * S[p][q] + c**2 * s_qq
         S[p][q] = S[q][p] = 0.0
 
         # cập nhật các hàng và cột p và q
@@ -61,22 +65,29 @@ def jacobi_eigenvalues(S: List[List[float]], error_tolerance: float = 1e-10) -> 
                 # áp dụng phép xoay lên các phần tử
                 S[i][p] = S[p][i] = c * s_ip - s * s_iq
                 S[i][q] = S[q][i] = s * s_ip + c * s_iq
-        
+
         # tích lũy phép quay
         for i in range(n):
             v_ip, v_iq = V[i][p], V[i][q]
             V[i][p] = c * v_ip - s * v_iq
             V[i][q] = s * v_ip + c * v_iq
-    
+
     if not is_converged:
-        raise ValueError(f"Numerical instability: Failed to converge within {max_iterations} iterations")
-    
+        import warnings
+        warnings.warn(
+            f"Numerical instability: Failed to converge within {max_iterations} iterations. "
+            "Returning best approximation."
+        )
+
     # sau khi hội tụ, ma trận S gần như chéo -> các phần tử nằm trên đường chéo là trị riêng
     eigenvalues = [S[i][i] for i in range(n)]
-    
+
     return eigenvalues, V
 
-def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
+
+def svd_decompose(
+    A: List[List[float]], max_iterations: int = 100
+) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
     Phân tách giá trị suy biến (Singular Value Decomposition - SVD) của một ma trận.
 
@@ -101,14 +112,14 @@ def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[fl
         3. Tính các giá trị suy biến σ_i bằng cách lấy căn bậc hai λ_i. Xây dựng ma trận Σ.
         4. Tính ma trận U bằng công thức u_i = (1/σ_i) * A * v_i cho các σ_i > 0.
         5. Xử lý các trường hợp đặc biệt: ma trận chữ nhật (m != n) và ma trận thiếu hạng.
-    
+
     Độ phức tạp:
     - Phân tách: O(n^3) hoặc O(m * n^2) tùy thuộc thuật toán thực thi cụ thể.
     - Giải hệ: O(n^2) sau khi đã có dạng phân tách SVD.
     """
     if not A or not A[0]:
         raise ValueError("Input matrix is empty")
-    
+
     m = len(A)
     n = len(A[0])
 
@@ -118,17 +129,22 @@ def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[fl
 
     # tìm trị riêng của A^T * A và vector riêng của V
     try:
-        lambdas, V = jacobi_eigenvalues(ATA)
+        lambdas, V = jacobi_eigenvalues(
+            ATA,
+            error_tolerance=1e-10,
+            max_iterations=max_iterations)
     except ValueError as e:
         raise RuntimeError(f"SVD failed due to Jacobi eigenvalue error: {e}")
-    
-    # kiểm tra NaN
-    for l in lambdas:
-        if l != l:
-            raise ArithmeticError("Numerical instability: NaN values proceed during decomposition")
 
-    # tính các giá trị suy biến 
-    sigmas = [sqrt(max(0.0, l)) for l in lambdas]
+    # kiểm tra NaN
+    for _l in lambdas:
+        if isnan(_l):
+            raise ArithmeticError(
+                "Numerical instability: NaN values proceed during decomposition"
+            )
+
+    # tính các giá trị suy biến
+    sigmas = [sqrt(max(0.0, _l)) for _l in lambdas]
 
     # SVD cần có các giá trị suy biến sắp xếp theo thứ tự giảm dần
     indices = list(range(n))
@@ -171,7 +187,7 @@ def svd_decompose(A: List[List[float]]) -> Tuple[List[List[float]], List[List[fl
             product = sum(U[r][i] * U[r][j] for r in range(m))
             for r in range(m):
                 U[r][i] -= product * U[r][j]
-        
+
         # chuẩn hóa
         norm = sqrt(sum(U[r][i] ** 2 for r in range(m)))
         if norm > 1e-10:
