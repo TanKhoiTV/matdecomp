@@ -11,13 +11,13 @@ Thuật toán:
 Các bước chính:
 - Gom cụm trị riêng gần nhau (xử lý bội số)
 - Tính cơ sở không gian riêng (null space)
-- Xây dựng P, D và tính P^{-1} bằng Gauss–Jordan
+- Xây dựng P, D và tính P^{-1} bằng Gauss-Jordan
 - Kiểm tra lại A ≈ P D P^{-1} bằng chuẩn Frobenius
 
 Phạm vi:
 - Hỗ trợ ma trận vuông thực chéo hóa được trên R
 - Phát hiện phổ phức:
-  + Chính xác với ma trận 2×2 (qua biệt thức)
+  + Chính xác với ma trận 2*2 (qua biệt thức)
   + Với n > 2: không đảm bảo phát hiện đầy đủ, có thể fail ở bước kiểm tra
 
 Lỗi (raises ValueError):
@@ -26,7 +26,7 @@ Lỗi (raises ValueError):
 - Phát hiện trị riêng phức (trong trường hợp hỗ trợ)
 - Sai số tái tạo vượt ngưỡng cho phép
 
-Phù hợp cho ma trận kích thước nhỏ–trung bình với phổ thực.
+Phù hợp cho ma trận kích thước nhỏ-trung bình với phổ thực.
 """
 
 from __future__ import annotations
@@ -69,11 +69,11 @@ def matmul(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
     Multiply two matrices represented as nested lists.
     
     Parameters:
-        A (List[List[float]]): Left matrix with shape n×p.
-        B (List[List[float]]): Right matrix with shape p×m.
+        A (List[List[float]]): Left matrix with shape n*p.
+        B (List[List[float]]): Right matrix with shape p*m.
     
     Returns:
-        List[List[float]]: Resulting matrix with shape n×m where element (i, j) is the sum over k of A[i][k] * B[k][j].
+        List[List[float]]: Resulting matrix with shape n*m where element (i, j) is the sum over k of A[i][k] * B[k][j].
     
     Notes:
         No shape validation is performed; behavior is undefined if the inner dimensions do not match.
@@ -86,13 +86,13 @@ def matmul(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
 
 def identity(n: int) -> List[List[float]]:
     """
-    Create an n×n identity matrix.
+    Create an n*n identity matrix.
     
     Parameters:
         n (int): Size of the square identity matrix.
     
     Returns:
-        List[List[float]]: n×n matrix with `1.0` on the diagonal and `0.0` elsewhere.
+        List[List[float]]: n*n matrix with `1.0` on the diagonal and `0.0` elsewhere.
     """
     return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
 
@@ -102,11 +102,11 @@ def subtract(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
     Subtract two square matrices elementwise.
     
     Parameters:
-        A (List[List[float]]): Left-hand n×n matrix.
-        B (List[List[float]]): Right-hand n×n matrix (must have the same dimensions as `A`).
+        A (List[List[float]]): Left-hand n*n matrix.
+        B (List[List[float]]): Right-hand n*n matrix (must have the same dimensions as `A`).
     
     Returns:
-        List[List[float]]: New n×n matrix where each element is A[i][j] - B[i][j].
+        List[List[float]]: New n*n matrix where each element is A[i][j] - B[i][j].
     """
     n = len(A)
     return [[A[i][j] - B[i][j] for j in range(n)] for i in range(n)]
@@ -189,7 +189,7 @@ def _verify_diagonalization(
 
 def _has_nonreal_eigenvalues(A: List[List[float]], n: int) -> bool:
     """
-    Detects whether a 2×2 real matrix has complex (nonreal) eigenvalues by checking the characteristic discriminant.
+    Detects whether a 2*2 real matrix has complex (nonreal) eigenvalues by checking the characteristic discriminant.
     
     For n == 2, computes the discriminant of the characteristic polynomial (trace^2 - 4·det) and treats sufficiently negative values as indicating nonreal eigenvalues (threshold -1e-9). For n != 2 this function does not attempt detection and returns False.
     
@@ -266,10 +266,10 @@ def _orthonormal_completion_column(Q: List[List[float]], col_idx: int) -> List[f
 
 def qr_decomposition(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]]]:
     """
-    Compute the QR decomposition of a square matrix using the modified Gram–Schmidt process.
+    Compute the QR decomposition of a square matrix using the modified Gram-Schmidt process.
     
     Returns:
-        (Q, R): Tuple of n×n matrices where A = Q R. Q has orthonormal columns for those columns whose norm is >= EPS; R is upper-triangular. If a column of A has norm less than EPS, the corresponding diagonal R[i][i] is zero and the Q column is left as the zero vector.
+        (Q, R): Tuple of n*n matrices where A = Q R. Q has orthonormal columns for those columns whose norm is >= EPS; R is upper-triangular. If a column of A has norm less than EPS, the corresponding diagonal R[i][i] is zero and the Q column is left as the zero vector.
     """
     n = len(A)
     Q = [[0.0] * n for _ in range(n)]
@@ -297,11 +297,11 @@ def qr_decomposition(A: List[List[float]]) -> Tuple[List[List[float]], List[List
 
 def wilkinson_shift(A: List[List[float]]) -> float:
     """
-    Selects a Wilkinson shift based on the bottom-right 2×2 block of matrix A.
+    Selects a Wilkinson shift based on the bottom-right 2*2 block of matrix A.
     
-    If A has size 1 returns A[0][0]. For larger A, computes the eigenvalues of the 2×2 submatrix
+    If A has size 1 returns A[0][0]. For larger A, computes the eigenvalues of the 2*2 submatrix
     formed by the last two rows/columns and returns the eigenvalue that is closer to the bottom-right
-    diagonal element. If the 2×2 discriminant is negative due to rounding, it is treated as zero.
+    diagonal element. If the 2*2 discriminant is negative due to rounding, it is treated as zero.
     Returns:
         The chosen Wilkinson shift (a scalar float).
     """
@@ -449,17 +449,17 @@ def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[floa
     
     This routine finds eigenvalues with a shifted QR iteration (Wilkinson shift + deflation),
     groups nearby eigenvalues, builds eigenvectors from null spaces of (A - λI), assembles
-    P from those eigenvectors, computes P^{-1} by Gauss–Jordan, constructs the diagonal D,
+    P from those eigenvectors, computes P^{-1} by Gauss-Jordan, constructs the diagonal D,
     and verifies the decomposition by the relative Frobenius norm (compare reconstructed A to input).
     
     Returns:
-        tuple: (P, D, P_inv) where each is an n×n matrix represented as a list of lists;
+        tuple: (P, D, P_inv) where each is an n*n matrix represented as a list of lists;
             P contains eigenvectors as columns, D is diagonal with the computed eigenvalues,
             and P_inv is the inverse of P.
     
     Raises:
         ValueError: if A is not a non-empty list matrix, not square, or invalid input;
-        ValueError: if a 2×2 discriminant test indicates nonreal eigenvalues (diagonalization over R not possible);
+        ValueError: if a 2*2 discriminant test indicates nonreal eigenvalues (diagonalization over R not possible);
         ValueError: if the algorithm determines A is not diagonalizable (insufficient null-space dimension or missing eigenvectors);
         ValueError: if eigenvectors are linearly dependent (P is noninvertible);
         ValueError: if the relative Frobenius reconstruction error exceeds RECON_TOL.
