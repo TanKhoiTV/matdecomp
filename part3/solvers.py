@@ -36,7 +36,7 @@ def gauss_seidel(
 
         for i in range(n):
             s1 = np.dot(A_np[i, :i], x[:i])
-            s2 = np.dot(A_np[i, i+1:], x_old[i+1:])
+            s2 = np.dot(A_np[i, i + 1 :], x_old[i + 1 :])
             x[i] = (b_np[i] - s1 - s2) / A_np[i, i]
 
         iter_error = np.linalg.norm(x - x_old, ord=2)
