@@ -73,7 +73,7 @@ jobs:
             -e "linsolve(" \
             -e ".array" \
             $files \
-            --exclude="benchmark.py"
+            --exclude=$PART3_FILES
 
       # Single loop covers all parts — skips missing files gracefully
       - name: Check syntax (all parts)
