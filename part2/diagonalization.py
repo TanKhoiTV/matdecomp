@@ -1,41 +1,535 @@
-from typing import List, Tuple
+"""
+Chéo hóa ma trận vuông thực A ≈ P D P^{-1} (triển khai thuần list, không NumPy).
+
+Thuật toán:
+- Nếu A đối xứng: sử dụng Jacobi để tính trị riêng
+  và vector riêng trực chuẩn (P^{-1} = P^T).
+- Nếu A không đối xứng: sử dụng QR algorithm (Modified Gram-Schmidt) với
+  Wilkinson shift và deflation để tính trị riêng, sau đó tìm vector riêng
+  thông qua không gian nghiệm của (A - λI).
+
+Các bước chính:
+- Gom cụm trị riêng gần nhau (xử lý bội số)
+- Tính cơ sở không gian riêng (null space)
+- Xây dựng P, D và tính P^{-1} bằng Gauss-Jordan
+- Kiểm tra lại A ≈ P D P^{-1} bằng chuẩn Frobenius
+
+Phạm vi:
+- Hỗ trợ ma trận vuông thực chéo hóa được trên R
+- Phát hiện phổ phức:
+  + Chính xác với ma trận 2*2 (qua biệt thức)
+  + Với n > 2: không đảm bảo phát hiện đầy đủ, có thể fail ở bước kiểm tra
+
+Lỗi (raises ValueError):
+- Ma trận không vuông hoặc không hợp lệ
+- Ma trận không chéo hóa được (thiếu vector riêng độc lập)
+- Phát hiện trị riêng phức (trong trường hợp hỗ trợ)
+- Sai số tái tạo vượt ngưỡng cho phép
+
+Phù hợp cho ma trận kích thước nhỏ-trung bình với phổ thực.
+"""
+
+from __future__ import annotations
+
+from typing import List, Optional, Tuple
+import math
+
+from part1.inverse import inverse
+
+from part2.decomposition import jacobi_eigenvalues
+
+__all__ = [
+    "diagonalize",
+    "jacobi_eigenvalues",
+    "matmul",
+    "identity",
+    "subtract",
+    "scalar_mult",
+    "norm",
+    "qr_decomposition",
+    "wilkinson_shift",
+    "qr_algorithm",
+    "null_space_basis",
+    "null_space",
+    "inverse",
+]
+
+EPS = 1e-10
+MAX_ITER = 3000
+RECON_TOL = 1e-10
+CLUSTER_ABS_TOL = 1e-7
+CLUSTER_REL_TOL = 1e-6
 
 
-def diagonalize(
+def matmul(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
+    """
+    Nhân hai ma trận biểu diễn bằng list lồng nhau.
+
+    Tham số:
+        A (List[List[float]]): Ma trận bên trái kích thước n*p.
+        B (List[List[float]]): Ma trận bên phải kích thước p*m.
+
+    Trả về:
+        List[List[float]]: Ma trận kết quả kích thước n*m, với phần tử (i, j)
+        là tổng theo k của A[i][k] * B[k][j].
+
+    Ghi chú:
+        Không kiểm tra kích thước; nếu số cột của A khác số hàng của B
+        thì kết quả không xác định.
+    """
+    n = len(A)
+    m = len(B[0])
+    p = len(B)
+    return [[sum(A[i][k] * B[k][j] for k in range(p)) for j in range(m)] for i in range(n)]
+
+
+def identity(n: int) -> List[List[float]]:
+    """
+    Tạo ma trận đơn vị kích thước n*n.
+
+    Tham số:
+        n (int): Kích thước ma trận.
+
+    Trả về:
+        List[List[float]]: Ma trận có 1.0 trên đường chéo chính và 0.0 ở vị trí khác.
+    """
+    return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+
+
+def subtract(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
+    """
+    Trừ hai ma trận vuông theo từng phần tử.
+
+    Tham số:
+        A, B: Hai ma trận vuông cùng kích thước n*n.
+
+    Trả về:
+        List[List[float]]: Ma trận kết quả với phần tử A[i][j] - B[i][j].
+    """
+    n = len(A)
+    return [[A[i][j] - B[i][j] for j in range(n)] for i in range(n)]
+
+
+def scalar_mult(A: List[List[float]], c: float) -> List[List[float]]:
+    """
+    Nhân một ma trận với một số thực.
+
+    Tham số:
+        A: Ma trận vuông n*n.
+        c (float): Hệ số nhân.
+
+    Trả về:
+        Ma trận mới với mỗi phần tử là c * A[i][j].
+    """
+    n = len(A)
+    return [[c * A[i][j] for j in range(n)] for i in range(n)]
+
+
+def transpose(A: List[List[float]]) -> List[List[float]]:
+    """Trả về ma trận chuyển vị của A."""
+    return [[A[j][i] for j in range(len(A))] for i in range(len(A[0]))]
+
+
+def norm(v: List[float]) -> float:
+    """
+    Tính chuẩn Euclid (L2) của vector.
+
+    Tham số:
+        v: Vector.
+
+    Trả về:
+        float: sqrt(tổng bình phương các phần tử).
+    """
+    return math.sqrt(sum(x * x for x in v))
+
+
+def _is_symmetric(A: List[List[float]]) -> bool:
+    """Kiểm tra A có đối xứng hay không (theo ngưỡng sai số EPS)."""
+    n = len(A)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if abs(A[i][j] - A[j][i]) > EPS:
+                return False
+    return True
+
+
+def _sort_eigendecomposition(
+    eigenvalues: List[float], eigenvectors: List[List[float]]
+) -> Tuple[List[float], List[List[float]]]:
+    """
+    Sắp xếp trị riêng tăng dần và hoán vị lại vector riêng tương ứng.
+    """
+    order = sorted(range(len(eigenvalues)), key=lambda i: eigenvalues[i])
+    sorted_values = [eigenvalues[i] for i in order]
+    sorted_vectors = [[eigenvectors[row][i] for i in order] for row in range(len(eigenvectors))]
+    return sorted_values, sorted_vectors
+
+
+def _verify_diagonalization(
     A: List[List[float]],
-) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
+    P: List[List[float]],
+    D: List[List[float]],
+    P_inv: List[List[float]],
+) -> None:
     """
-    Chéo hóa ma trận vuông A sao cho:
-        A = P D P^-1
+    Kiểm tra A ≈ P D P^{-1} bằng chuẩn Frobenius tương đối.
 
-    trong đó:
-    - D: là ma trận đường chéo chứa các giá trị riêng,
-    - P: chứa các vector riêng tương ứng dưới dạng các cột,
-    - P_inv: là ma trận nghịch đảo của P.
-
-    Điều kiện để chéo hóa được:
-    - A phải là ma trận vuông.
-    - A chéo hóa được khi nó có đủ số lượng vector riêng độc lập tuyến tính
-    (tương đương tổng bội hình học bằng kích thước ma trận).
-
-    Giá trị trả về:
-        tuple: (P, D, P_inv)
-    P: ma trận chứa các vector riêng dưới dạng các cột
-    D: ma trận đường chéo chứa các giá trị riêng
-    P_inv: ma trận nghịch đảo của P
+    Nếu sai số vượt quá ngưỡng RECON_TOL thì raise ValueError.
     """
-    # Method: Sử dụng phương pháp lặp lũy thừa để tính toán giá trị riêng
-    # và vector riêng
+    n = len(A)
+    reconstructed = matmul(matmul(P, D), P_inv)
+    diff = subtract(reconstructed, A)
 
-    # TODO:
-    # - Kiểm tra A có phải ma trận vuông hay không
-    # - Cài đặt tìm giá trị riêng và vector riêng
-    # - Xây dựng ma trận P, D và tính P^-1
+    err = math.sqrt(sum(diff[i][j] ** 2 for i in range(n) for j in range(n)))
+    base = math.sqrt(sum(A[i][j] ** 2 for i in range(n) for j in range(n)))
 
-    # Chưa cài đặt (sẽ hoàn thiện ở Sprint 2)
+    rel = err / max(base, 1e-30)
+    if rel > RECON_TOL:
+        raise ValueError(
+            f"Decomposition verification failed: relative Frobenius error {rel:.3e} "
+            f"exceeds tolerance {RECON_TOL:.3e}"
+        )
 
-    P: List[List[float]] = [[]]
-    D: List[List[float]] = [[]]
-    P_inv: List[List[float]] = [[]]
+
+def _has_nonreal_eigenvalues(A: List[List[float]], n: int) -> bool:
+    """
+    Phát hiện trị riêng phức cho ma trận 2x2.
+
+    Ý tưởng:
+        Dựa vào biệt thức của đa thức đặc trưng:
+            Δ = trace^2 - 4*det
+
+    Trả về:
+        True nếu Δ < -1e-9 (có trị riêng phức), ngược lại False.
+
+    Ghi chú:
+        Chỉ áp dụng cho n == 2.
+    """
+    if n != 2:
+        return False
+    a, b = A[0][0], A[0][1]
+    c, d = A[1][0], A[1][1]
+    trace = a + d
+    det = a * d - b * c
+    disc = trace * trace - 4.0 * det
+    return disc < -1e-9
+
+
+def _cluster_eigenvalue_indices(vals: List[float]) -> List[List[int]]:
+    """
+    Gom nhóm các trị riêng gần nhau thành từng cụm.
+
+    Hai giá trị được coi là cùng cụm nếu:
+        |v - μ| ≤ CLUSTER_ABS_TOL + CLUSTER_REL_TOL * max(1, |μ|)
+
+    Trả về:
+        Danh sách các cụm chỉ số.
+    """
+    n = len(vals)
+    if n == 0:
+        return []
+    order = sorted(range(n), key=lambda i: vals[i])
+    clusters: List[List[int]] = []
+    k = 0
+    while k < n:
+        grp = [order[k]]
+        mu = vals[order[k]]
+        k += 1
+        while k < n:
+            i = order[k]
+            v = vals[i]
+            thresh = CLUSTER_ABS_TOL + CLUSTER_REL_TOL * max(1.0, abs(mu))
+            if abs(v - mu) <= thresh:
+                grp.append(i)
+                mu = sum(vals[j] for j in grp) / len(grp)
+                k += 1
+            else:
+                break
+        clusters.append(grp)
+    return clusters
+
+
+def _orthonormal_completion_column(Q: List[List[float]], col_idx: int) -> List[float]:
+    """
+    Sinh thêm một vector đơn vị trực giao với các cột trước đó của Q.
+    """
+    n = len(Q)
+    previous_cols = [[Q[row][j] for row in range(n)] for j in range(col_idx)]
+
+    for basis_idx in range(n):
+        candidate = [0.0] * n
+        candidate[basis_idx] = 1.0
+
+        for prev in previous_cols:
+            proj = sum(candidate[r] * prev[r] for r in range(n))
+            candidate = [candidate[r] - proj * prev[r] for r in range(n)]
+
+        candidate_norm = norm(candidate)
+        if candidate_norm > EPS:
+            return [x / candidate_norm for x in candidate]
+
+    raise ValueError(f"Failed to construct an orthonormal completion vector for column {col_idx}")
+
+
+def qr_decomposition(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]]]:
+    """
+    Phân rã QR bằng Gram-Schmidt cải tiến.
+
+    Trả về:
+        Q: ma trận trực chuẩn
+        R: ma trận tam giác trên
+
+    Ghi chú:
+        Nếu cột có chuẩn < EPS, sẽ sinh vector trực giao thay thế.
+    """
+    n = len(A)
+    Q = [[0.0] * n for _ in range(n)]
+    R = [[0.0] * n for _ in range(n)]
+
+    V = [list(col) for col in zip(*A)]
+
+    for i in range(n):
+        R[i][i] = norm(V[i])
+        if R[i][i] < EPS:
+            Q_col = _orthonormal_completion_column(Q, i)
+            R[i][i] = 0.0
+        else:
+            Q_col = [x / R[i][i] for x in V[i]]
+
+        for r in range(n):
+            Q[r][i] = Q_col[r]
+
+        for j in range(i + 1, n):
+            R[i][j] = sum(Q[r][i] * V[j][r] for r in range(n))
+            V[j] = [V[j][r] - R[i][j] * Q[r][i] for r in range(n)]
+
+    return Q, R
+
+
+def wilkinson_shift(A: List[List[float]]) -> float:
+    """
+    Tính Wilkinson shift từ khối 2x2 góc dưới phải.
+
+    Trả về:
+        Trị riêng gần phần tử A[n-1][n-1] nhất.
+    """
+    n = len(A)
+    if n < 2:
+        return A[0][0]
+
+    a = A[n - 2][n - 2]
+    b = A[n - 2][n - 1]
+    c = A[n - 1][n - 2]
+    d = A[n - 1][n - 1]
+
+    trace = a + d
+    det2 = a * d - b * c
+    disc = trace * trace - 4.0 * det2
+    if disc < 0:
+        disc = 0.0
+    s = math.sqrt(disc)
+    r1 = (trace + s) / 2.0
+    r2 = (trace - s) / 2.0
+    return r1 if abs(r1 - d) <= abs(r2 - d) else r2
+
+
+def qr_algorithm(A: List[List[float]]) -> List[float]:
+    """
+    Tính trị riêng bằng QR iteration có shift (Wilkinson) và deflation.
+
+    Trả về:
+        Danh sách trị riêng (float).
+
+    Lỗi:
+        Raise ValueError nếu không hội tụ sau MAX_ITER.
+    """
+    n = len(A)
+    Ak = [row[:] for row in A]
+    eigenvalues: List[float] = []
+
+    size = n
+    while size > 0:
+        if size == 1:
+            eigenvalues.append(Ak[0][0])
+            break
+
+        converged = False
+        for _ in range(MAX_ITER):
+            if abs(Ak[size - 1][size - 2]) < EPS:
+                eigenvalues.append(Ak[size - 1][size - 1])
+                size -= 1
+                Ak = [row[:size] for row in Ak[:size]]
+                converged = True
+                break
+
+            mu = wilkinson_shift(Ak)
+            I_mat = identity(size)
+            shifted = subtract(Ak, scalar_mult(I_mat, mu))
+            Q, R = qr_decomposition(shifted)
+            Ak = matmul(R, Q)
+            Ak = subtract(Ak, scalar_mult(I_mat, -mu))
+
+        if not converged:
+            raise ValueError(
+                f"QR iteration failed to converge after {MAX_ITER} iterations "
+                f"for the trailing {size}x{size} block"
+            )
+
+    return eigenvalues
+
+
+def null_space_basis(A: List[List[float]]) -> List[List[float]]:
+    """
+    Tìm cơ sở của không gian kernel của A.
+
+    Trả về:
+        Danh sách vector cơ sở (mỗi vector là nghiệm tự do).
+
+    Nếu hạng đầy đủ:
+        Trả về [].
+    """
+    n = len(A)
+    m = len(A[0])
+
+    M = [row[:] for row in A]
+
+    pivot_col: List[int] = []
+    row = 0
+
+    for col in range(m):
+        pivot = None
+        for r in range(row, n):
+            if abs(M[r][col]) > EPS:
+                pivot = r
+                break
+
+        if pivot is None:
+            continue
+
+        M[row], M[pivot] = M[pivot], M[row]
+
+        pivot_val = M[row][col]
+        M[row] = [x / pivot_val for x in M[row]]
+
+        for r in range(n):
+            if r != row:
+                factor = M[r][col]
+                M[r] = [M[r][c] - factor * M[row][c] for c in range(m)]
+
+        pivot_col.append(col)
+        row += 1
+
+    free_vars = [j for j in range(m) if j not in pivot_col]
+    if not free_vars:
+        return []
+
+    rank = len(pivot_col)
+    basis: List[List[float]] = []
+    for free in free_vars:
+        v = [0.0] * m
+        v[free] = 1.0
+        for i in reversed(range(rank)):
+            col = pivot_col[i]
+            v[col] = -sum(M[i][j] * v[j] for j in range(m))
+        basis.append(v)
+    return basis
+
+
+def null_space(A: List[List[float]]) -> List[float]:
+    """
+    Trả về một vector thuộc không gian kernel của A.
+
+    Nếu không tồn tại:
+        Trả về [].
+    """
+    b = null_space_basis(A)
+    return b[0] if b else []
+
+
+# Main function: diagonalize
+def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
+    """
+    Chéo hóa ma trận thực A: A = P D P^{-1}.
+
+    Quy trình:
+        - Nếu A đối xứng → dùng Jacobi
+        - Nếu không → QR algorithm để tìm trị riêng
+        - Gom cụm trị riêng gần nhau
+        - Tìm vector riêng bằng null space của (A - λI)
+        - Lập P từ các vector riêng
+        - Tính P^{-1}
+        - Kiểm tra lại bằng chuẩn Frobenius
+
+    Trả về:
+        (P, D, P_inv)
+
+    Lỗi:
+        - Ma trận không vuông
+        - Có trị riêng phức (2x2)
+        - Không đủ vector riêng độc lập
+        - P không khả nghịch
+        - Sai số tái tạo vượt ngưỡng
+    """
+    if not isinstance(A, list) or len(A) == 0:
+        raise ValueError("Invalid matrix")
+
+    n = len(A)
+    if any(len(row) != n for row in A):
+        raise ValueError("Matrix must be square")
+
+    if _has_nonreal_eigenvalues(A, n):
+        raise ValueError(
+            "Matrix has complex eigenvalues; cannot diagonalize over the real numbers"
+        )
+
+    if _is_symmetric(A):
+        eigenvalues, eigenvectors = jacobi_eigenvalues([row[:] for row in A], EPS)
+        eigenvalues, eigenvectors = _sort_eigendecomposition(eigenvalues, eigenvectors)
+
+        P = eigenvectors
+        P_inv = transpose(P)
+        D = [[0.0] * n for _ in range(n)]
+        for i in range(n):
+            D[i][i] = eigenvalues[i]
+
+        _verify_diagonalization(A, P, D, P_inv)
+        return P, D, P_inv
+
+    eigenvalues = qr_algorithm(A)
+    if len(eigenvalues) != n:
+        raise ValueError("A is not diagonalizable")
+
+    clusters = _cluster_eigenvalue_indices(eigenvalues)
+    eigenvector_cols: List[Optional[List[float]]] = [None] * n
+
+    for grp in clusters:
+        lam = sum(eigenvalues[i] for i in grp) / len(grp)
+        M = subtract(A, scalar_mult(identity(n), lam))
+        basis = null_space_basis(M)
+        m = len(grp)
+        if len(basis) < m:
+            raise ValueError("A is not diagonalizable")
+
+        for t, col_idx in enumerate(sorted(grp)):
+            eigenvector_cols[col_idx] = basis[t]
+
+    if any(v is None for v in eigenvector_cols):
+        raise ValueError("A is not diagonalizable")
+
+    cols = [v for v in eigenvector_cols if v is not None]
+    P = [[cols[j][i] for j in range(n)] for i in range(n)]
+
+    try:
+        P_inv = inverse(P)
+    except ValueError as e:
+        raise ValueError(
+            "A is not diagonalizable (eigenvectors are linearly dependent)"
+        ) from e
+
+    D = [[0.0] * n for _ in range(n)]
+    for i in range(n):
+        D[i][i] = eigenvalues[i]
+
+    _verify_diagonalization(A, P, D, P_inv)
 
     return P, D, P_inv
