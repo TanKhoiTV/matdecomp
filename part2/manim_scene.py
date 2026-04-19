@@ -1,6 +1,5 @@
 from typing import Tuple, cast
 from manim import (
-    Scene,
     Line,
     Circle,
     Vector,
@@ -47,6 +46,7 @@ from manim import (
     UR,
 )
 from manim.utils.color import ParsableManimColor
+from theme import ProjectScene
 import numpy as np
 
 config.media_width = "75%"
@@ -74,7 +74,7 @@ def create_gradient_circle(radius: float = 1.0, n_segments: int = 100) -> VGroup
     return segments
 
 
-class SVDIntro(Scene):
+class SVDIntro(ProjectScene):
     def construct(self) -> None:
         plane = NumberPlane(background_line_style={"stroke_opacity": 0.3})
 
@@ -188,7 +188,7 @@ def right_angle_marker(
     )
 
 
-class SVDComparisionScene(Scene):
+class SVDComparisionScene(ProjectScene):
     def construct(self) -> None:
         LEFT_POS = LEFT * 3.5
         RIGHT_POS = RIGHT * 3.5
@@ -393,7 +393,7 @@ def compute_pca_arrows(
     return pc1, pc2, angle, S
 
 
-class SVDApplicationScene(Scene):
+class SVDApplicationScene(ProjectScene):
     def construct(self) -> None:
         # CUE 24
         sigma_tex = r"\Sigma = \begin{bmatrix} 5 & 0 & 0 \\ 0 & 2 & 0 \\ 0 & 0 & 0.2 \end{bmatrix}"
