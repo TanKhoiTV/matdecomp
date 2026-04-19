@@ -10,7 +10,7 @@ Indeed, there is. This is where **Singular Value Decomposition**, or SVD, enters
 
 To understand what SVD is actually doing, let’s think about how a linear transformation affects the space it lives in. Imagine a unit circle in a 2D input space. When we apply a linear transformation $A$ to this space, that circle usually gets stretched and tilted into an ellipse in the output space.
 
-The core insight is this: No matter how mangled or distorted that ellipse looks, we can always find a set of perpendicular (formally called orthogonal) vectors in our input space that land exactly on the axes of that ellipse in the output space. We shall describe this process as a sequence of three distinct motions: $A = U \Sigma V^T$.
+The core insight is this: No matter how distorted that ellipse looks, we can always find a set of perpendicular vectors in our input space that become the axes of the ellipse after transformation. We shall describe this process as a sequence of three distinct motions: $A = U \Sigma V^T$.
 
 Going from right to left, we begin with **$V^T$**, the rotation in the input space. We first rotate our coordinate system so that our basis vectors align with the directions that will eventually become the axes of our ellipse. Visually, the unit circle spins but doesn't look any different.
 
@@ -20,7 +20,7 @@ Lastly, we perform **$U$**, the rotation in the output space. We rotate the scal
 
 Notice the elegance here. While diagonalization tries to force the input and output to use the same "special" basis, singular value decomposition is more flexible. It allows the input basis ($V$) and the output basis ($U$) to be different, provided they are both orthonormal. This flexibility is exactly why SVD works for every single matrix in existence.
 
-As a side note, to find the $U$ and $V$ matrices, in theory, we have to look at the matrix $A^T A$ or $AA^T$. Why them specifically? Because they're always symmetric, and if you didn't know already, symmetric matrices always diagonalize cleanly with orthogonal eigenvectors. Did you catch that? **Orthogonal** eigenvectors. That's exactly what we need. However, from a programming standpoint, finding these eigenvalues means solving a polynomial equation of degree $n$, and for $n$ of 5 or higher, there is no closed-form solution, so if we were to implement SVD in Python, we would have to use an iterative algorithm that converges toward the answer rather than computing it exactly. There is also the problem that calculating $A^T A$ or $AA^T$ with a computer is not a stable operation, and they reduce all the precision that we need. The exact details are beyond the scope of this video.
+As a side note, to find the $U$ and $V$ matrices, in theory, we have to look at the matrix $A^T A$ or $AA^T$. Why them specifically? Because they're always symmetric, and if you didn't know already, symmetric matrices always diagonalize cleanly with orthogonal eigenvectors. Orthogonal means perpendicular. That's exactly what we need. However, from a programming standpoint, finding these eigenvalues means solving a polynomial equation of degree $n$, and for $n$ of 5 or higher, there is no closed-form solution, so if we were to implement SVD in Python, we would have to use an iterative algorithm that converges toward the answer rather than computing it exactly. There is also the problem that calculating $A^T A$ or $AA^T$ with a computer is not a stable operation, and they reduce all the precision that we need.
 
 ## SVD vs. Diagonalization
 
