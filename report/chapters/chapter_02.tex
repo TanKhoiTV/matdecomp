@@ -8,7 +8,7 @@
 
 Phân rã giá trị suy biến - Singular Value Decomposition là một công cụ mạnh mẽ trong đại số tuyến tính, nó cho phép phân tích một ma trận bất kỳ $A \in \mathbb{R}^{m \times n}$ thành ba ma trận đặc biệt:
 
-{\large
+{
 \begin{equation}
     A = U \Sigma V^T
 \end{equation}
@@ -105,14 +105,15 @@ Dựa trên giới hạn của định lý Abel, ta phải sử dụng các phư
 
 \subsection{Chi tiết thuật toán}
 
-\subsubsection{Phép xoay Jacobi}
+\subsubsection{Phép xoay Jacobi hai phía (Two-sided Jacobi)\protect\footnotemark}
+\footnotetext{Ngoài ra còn tồn tại phương pháp Jacobi một phía với nguyên lý tương tự.}
 
 Tại mỗi bước lặp, thuật toán chọn một phần tử ngoài đường chéo $s_{ij}$ (thường là phần tử có giá trị tuyệt đối lớn nhất) và triệt tiêu nó về 0 bằng một phép xoay trực giao, gọi là \textbf{ma trận xoay Jacobi} $G(i, j, \theta)$.
 
 Ma trận $G$ giống với ma trận đơn vị nhưng có phần tử thay đổi tại bốn vị trí: $g_{ii}, g_{jj}, g_{ij} \text{ và } g_{ji}$. Khi đó, ma trận được cập nhật theo công thức: $S' = G^T S G$.
 
 \begin{equation}
-    \scalebox{0.9}{
+    \scalebox{0.8}{
     $
     G(i, j, \theta) = 
     \begin{bmatrix}
@@ -170,6 +171,19 @@ Không những thế, ma trận trực giao $G$ có đặc tính bảo toàn bì
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
+
+\paragraph{Ghi chú:}
+\begin{itemize}[itemsep=2.5pt, leftmargin=1cm]
+    \item Tại mỗi bước lặp, việc lựa chọn cặp chỉ số $(i, j)$ có thể dựa trên phần tử ngoài đường chéo có giá trị tuyệt đối lớn nhất nhằm tăng tốc độ hội tụ.
+    
+    \item Góc quay $\theta$ được tính toán sao cho triệt tiêu phần tử $s_{ij}$, đồng thời đảm bảo ma trận quay là trực giao.
+    
+    \item Các phép quay cần được tích lũy qua các bước lặp để xây dựng các ma trận trực giao cuối cùng.
+    
+    \item Thuật toán dừng khi tất cả các phần tử ngoài đường chéo đủ nhỏ (theo ngưỡng $\varepsilon$ cho trước).
+    
+    \item Trong thực tế, có thể cần nhiều vòng lặp qua toàn bộ các cặp chỉ số để đạt được sự hội tụ.
+\end{itemize}
 
 \newpage
 
@@ -239,8 +253,164 @@ Trong đó:
 
 \section{Phương pháp tìm trị riêng và vector riêng}
 
+\subsection{Thuật toán QR với kỹ thuật Deflation}
+
+Thuật toán QR là một phương pháp nhằm đưa ma trận $A$ về dạng tam giác trên (dạng Schur). Khi ma trận $A$ là ma trận tam giác trên, các trị riêng chính là các phần tử nằm trên đường chéo chính.
+
+\newpage
+
+\subsubsection{Các bước thực hiện}
+
+\begin{enumerate}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Khởi tạo:} Đặt $A_0 = A$.
     
+    \item \textbf{Lặp (Iteration):} Tại mỗi bước $k$, thực hiện phân rã ma trận:
+    \begin{equation*}
+        A_k = Q_k R_k
+    \end{equation*}
+    Sau đó cập nhật ma trận cho bước kế tiếp bằng cách nhân ngược theo thứ tự:
+    \begin{equation*}
+        A_{k+1} = R_k Q_k
+    \end{equation*}
+    \textit{Ghi chú: $A_{k+1}$ đồng dạng với $A_k$ ($A_{k+1} = Q_k^{-1} A_k Q_k$), nên chúng có cùng tập trị riêng.}
+    
+    \item \textbf{Hội tụ:} Qua nhiều vòng lặp, các phần tử phía dưới đường chéo chính tiến dần về số 0.
+\end{enumerate}
+
+\subsubsection{Kỹ thuật Deflation}
+
+Để tối ưu tốc độ của thuật toán, sau khi phần tử $A[n - 1][n - 2]$ đủ nhỏ, tức là $A[n - 1][n - 2] < \epsilon$ với $\epsilon$ là ngưỡng hội tụ cho phép:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item Ta coi phần tử ở góc cuối $A[n - 1][n - 1]$ đã hội tụ thành một trị riêng.
+    \item Thu nhỏ ma trận bằng cách cắt bỏ hàng cuối và cột cuối (giảm kích thước từ $n$ xuống $n - 1$)
+    \item Tiếp tục quy trình đến khi ma trận chỉ còn kích thước $1 \times 1$.
+\end{itemize}
+
+\subsection{Dịch chuyển Wilkinson (Wilkinson Shift)}
+
+Wilkinson shift được sử dụng để tăng tốc độ hội tụ của thuật toán QR. Bằng cách chọn một giá trị dịch chuyển gần với trị riêng thực của ma trận (ước lượng từ khối ma trận $2 \times 2$ cuối), thuật toán làm giảm nhanh các phần tử đường chéo, giúp quá trình deflation diễn ra nhanh hơn giúp cải thiện hiệu năng đáng kể.
+
+\subsubsection{Công thức dịch chuyển}
+
+Thay vì phân rã trực tiếp $A_k$, ta thực hiện:
+
+\begin{equation}
+    A_k - \mu I = Q_k R_k \quad\qquad
+    A_{k+1} = R_k Q_k + \mu I
+\end{equation}
+
+\subsubsection{Tính giá trị Wilkinson Shift}
+
+Giá trị $\mu$ được chọn là trị riêng của khối con $2 \times 2$ ở góc dưới bên phải ma trận, cụ thể là nghiệm gần với phần tử đường chéo cuối cùng nhất.
+
+Xét khối $2 \times 2$ cuối:
+
+\begin{equation*}
+    B = \begin{pmatrix}
+        a & b \\
+        c & d
+    \end{pmatrix} = 
+    \begin{pmatrix}
+        A_{n-2,n-2} & A_{n-2,n-1} \\
+        A_{n-1,n-2} & A_{n-1,n-1}
+    \end{pmatrix}
+\end{equation*}
+
+\begin{enumerate}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Tìm nghiệm}: Giải phương trình đặc trưng của $B$:
+    \begin{equation*}
+        \lambda^2 - tr(B)\lambda + det(B) = 0
+        \quad \Rightarrow \quad
+        \lambda = \frac{(a + d) \pm \sqrt{(a + d)^2 - 4(ad - bc)}}{2}
+    \end{equation*}
+    
+    \item \textbf{Chọn $\mu$}: $\mu$ là giá trị nhỏ nhất giữa $|\lambda_1 - d|$ và $|\lambda_2 - d|$.
+\end{enumerate}
+
+\subsection{Phân rã QR bằng Gram-Schmidt cải tiến}
+
+Trong môi trường dấu phẩy động, thuật toán Gram-Schmidt cổ điển dễ làm mất đi tính trực giao giữa các vector do sai số làm tròn trong quá trình tích lũy. Cụ thể hơn, nguyên nhân nằm ở các phép trừ liên tiếp giữa các vector gần song song theo công thức:
+
+\begin{equation}
+    v_j \leftarrow v_j - \sum_{i = 1}^{k}(q_i^T v_j)q_i
+\end{equation}
+
+\noindent Nếu $Q$ không trực giao đủ tốt sẽ dẫn đến $Q^TQ \neq I$ và làm cho lặp $QR$ bị sai và cuối cùng các trị riêng bị sai hoặc hội tụ chậm.
+
+Đối với thuật toán Gram-Schmidt cải tiến, việc trực giao hóa từng bước sẽ được thực hiện ngay lập tức ngay sau khi có được $q_i$
+
+\begin{equation}
+    v_j \leftarrow v_j - (q_i^T v_j)q_i
+\end{equation}
+
+\noindent sẽ giúp $v_j$ cập nhật liên tục và sẽ làm giảm sai số tích lũy. Do đó mà Gram-Schmidt cải tiến thường được sử dụng phổ biến hơn trong thực tế so với cách thông thường.
+
+\newpage
+
+\begin{algorithm}[H]
+\caption{\textproc{Thuật toán Gram-Schmidt cải tiến}}
+\begin{algorithmic}[1]
+\Procedure{qr\_decomposition(A)}{}
+    \State $n \gets \text{số cột của } A$
+    \State $Q \gets 0_{n \times n}, \; R \gets 0_{n \times n}$
+    \State $V \gets \text{các cột của } A$
+
+    \For{$i = 1$ to $n$}
+        \State $R_{ii} \gets \|V_i\|_2$
+        
+        \If{$R_{ii} < \epsilon$}
+            \State $q_i \gets$ vector đơn vị trực giao với các cột trước đó của $Q$
+            \State $R_{ii} \gets 0$
+        \Else
+            \State $q_i \gets \dfrac{V_i}{R_{ii}}$
+        \EndIf
+        
+        \State Gán $q_i$ làm cột thứ $i$ của $Q$
+        
+        \For{$j = i+1$ to $n$}
+            \State $R_{ij} \gets q_i^T V_j$
+            \State $V_j \gets V_j - R_{ij} q_i$
+        \EndFor
+    \EndFor
+
+    \State \Return $Q, R$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Điều kiện dừng và hội tụ:}
+\begin{itemize}[itemsep=2.5pt, leftmargin=1cm]
+    \item Ngưỡng sai số: $\epsilon = 1e-10$
+    
+    \item Deflation khi: $|A[n - 1][n - 2] < \epsilon|$
+    
+    \item Số vòng lặp tối đa: $MAX\_ITERATION = 3000$ \\ Nếu không hội tụ sau số vòng lặp này, thuật toán sẽ báo lỗi.
+\end{itemize}
 
 \newpage
 
 \section{Trực quan hóa với Manim}
+
+\subsection{Nội dung của video}
+
+Video tập trung phân tích và mô phỏng lý thuyết \textbf{phân rã giá trị suy biến (Singular Value Decomposition - SVD)}, một phương pháp chuẩn hóa ma trận có tính tổng quát cao, khắc phục giới hạn tồn tại của phương pháp chéo hóa (Diagonalization) truyền thống. Nội dung video được cấu trúc thành ba phần chính:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Phân tích hình học và đại số}: Minh họa quy trình phân tách một phép biến đổi tuyến tính thành tích của ba ma trận thành phần: Phép xoay trong không gian nguồn thông qua ma trận đơn nhất $V^T$. Phép co giãn hình học (scaling) dựa trên ma trận đường chéo các giá trị suy biến $\Sigma$. Phép xoay trong không gian đích thông qua ma trận đơn nhất $U$.
+    \item \textbf{So sánh tính ưu việt}: Phân tích lý do vì sao SVD được coi là phương pháp phân rã tối ưu trong việc xử lý các ma trận không vuông hoặc không đầy đủ hạng bằng cách sử dụng hệ hai cơ sở trực chuẩn khác biệt ($U$ và $V$), thay vì sử dụng một hệ cơ sở trực chuẩn duy nhất như trong chéo hóa ma trận.
+    \item \textbf{Ứng dụng thực tiễn}: Trình bày nguyên lý hoạt động của SVD như một công cụ lọc nhiễu và nén thông tin thông qua việc xấp xỉ ma trận hạng thấp. Các ví dụ thực tiễn bao gồm: nén dữ liệu hình ảnh, phân tích thành phần chính (PCA) trong thống kê, phân tích ngữ nghĩa ẩn (Latent Semantic Analysis - LSA)...
+\end{itemize}
+
+\subsection{Động lực thực hiện}
+
+Động lực chính của đồ án xuất phát từ việc tối ưu hóa khả năng tiếp cận và nhận thức đối với một trong những khái niệm nền tảng phức tạp nhất của Đại số tuyến tính:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Trực qua hóa sự trừu tượng}: Trong môi trường học thuật, các phép phân rã chỉ thường được tiếp cận thông qua các hệ thống công thức và thuật toán đại số thuần túy mà bỏ quên đi ý tưởng hình học đằng sau đó. Đồ án sử dụng thư viện Manim để chuyển đổi các định nghĩa trừu tượng sang các thực thể hình học, giúp tăng sự trực quan của người xem thông qua các phép biến đổi trong không gian.
+    \item \textbf{Giải quyết giới hạn của phương pháp truyền thống}: Nhằm làm rõ tính ưu việt của SVD so với phương pháp chéo hóa thông thường. Việc trực quan hóa giúp minh chứng rằng SVD là công cụ tổng quát hơn, giải quyết được nhiều trường hợp hơn mà không bị ràng buộc bởi tính chất, đặc trưng của các ma trận vuông hoặc hệ vector riêng.
+    \item \textbf{Kết nối lý thuyết với các bài toán thực tiễn hiện đại}: SVD không chỉ là khái niệm lý thuyết mà còn là nhân tố cốt lõi trong các công nghệ đột phá như nén dữ liệu, giảm chiều dữ liệu (PCA) và xử lý ngôn ngữ tự nhiên (LSA). Đồ án nhằm xây dựng một cái nhìn toàn diện, giúp người học hiểu rõ tại sao các phép hình học cơ bản lại ứng dụng trong các hệ thống AI và phân tích dữ liệu lớn hiện nay.
+\end{itemize}
+
+\subsection{Quy trình sản xuất}
+
