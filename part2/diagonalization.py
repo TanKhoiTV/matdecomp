@@ -63,17 +63,19 @@ CLUSTER_REL_TOL = 1e-6
 
 def matmul(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
     """
-    Multiply two matrices represented as nested lists.
+    Nhân hai ma trận biểu diễn bằng list lồng nhau.
 
-    Parameters:
-        A (List[List[float]]): Left matrix with shape n*p.
-        B (List[List[float]]): Right matrix with shape p*m.
+    Tham số:
+        A (List[List[float]]): Ma trận bên trái kích thước n*p.
+        B (List[List[float]]): Ma trận bên phải kích thước p*m.
 
-    Returns:
-        List[List[float]]: Resulting matrix with shape n*m where element (i, j) is the sum over k of A[i][k] * B[k][j].
+    Trả về:
+        List[List[float]]: Ma trận kết quả kích thước n*m, với phần tử (i, j)
+        là tổng theo k của A[i][k] * B[k][j].
 
-    Notes:
-        No shape validation is performed; behavior is undefined if the inner dimensions do not match.
+    Ghi chú:
+        Không kiểm tra kích thước; nếu số cột của A khác số hàng của B
+        thì kết quả không xác định.
     """
     n = len(A)
     m = len(B[0])
@@ -83,27 +85,26 @@ def matmul(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
 
 def identity(n: int) -> List[List[float]]:
     """
-    Create an n*n identity matrix.
+    Tạo ma trận đơn vị kích thước n*n.
 
-    Parameters:
-        n (int): Size of the square identity matrix.
+    Tham số:
+        n (int): Kích thước ma trận.
 
-    Returns:
-        List[List[float]]: n*n matrix with `1.0` on the diagonal and `0.0` elsewhere.
+    Trả về:
+        List[List[float]]: Ma trận có 1.0 trên đường chéo chính và 0.0 ở vị trí khác.
     """
     return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
 
 
 def subtract(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
     """
-    Subtract two square matrices elementwise.
+    Trừ hai ma trận vuông theo từng phần tử.
 
-    Parameters:
-        A (List[List[float]]): Left-hand n*n matrix.
-        B (List[List[float]]): Right-hand n*n matrix (must have the same dimensions as `A`).
+    Tham số:
+        A, B: Hai ma trận vuông cùng kích thước n*n.
 
-    Returns:
-        List[List[float]]: New n*n matrix where each element is A[i][j] - B[i][j].
+    Trả về:
+        List[List[float]]: Ma trận kết quả với phần tử A[i][j] - B[i][j].
     """
     n = len(A)
     return [[A[i][j] - B[i][j] for j in range(n)] for i in range(n)]
@@ -111,39 +112,39 @@ def subtract(A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
 
 def scalar_mult(A: List[List[float]], c: float) -> List[List[float]]:
     """
-    Multiply each element of a square matrix by a scalar.
+    Nhân một ma trận với một số thực.
 
-    Parameters:
-        A (List[List[float]]): Square matrix (n x n) represented as a list of n rows, each with n floats.
-        c (float): Scalar multiplier.
+    Tham số:
+        A: Ma trận vuông n*n.
+        c (float): Hệ số nhân.
 
-    Returns:
-        List[List[float]]: New n x n matrix where each element is equal to `c * A[i][j]`.
+    Trả về:
+        Ma trận mới với mỗi phần tử là c * A[i][j].
     """
     n = len(A)
     return [[c * A[i][j] for j in range(n)] for i in range(n)]
 
 
 def transpose(A: List[List[float]]) -> List[List[float]]:
-    """Return the transpose of a matrix."""
+    """Trả về ma trận chuyển vị của A."""
     return [[A[j][i] for j in range(len(A))] for i in range(len(A[0]))]
 
 
 def norm(v: List[float]) -> float:
     """
-    Compute the Euclidean (L2) norm of a vector.
+    Tính chuẩn Euclid (L2) của vector.
 
-    Parameters:
-        v (List[float]): Sequence of numeric components.
+    Tham số:
+        v: Vector.
 
-    Returns:
-        float: The Euclidean norm (sqrt of the sum of squares of the components), which is greater than or equal to 0.
+    Trả về:
+        float: sqrt(tổng bình phương các phần tử).
     """
     return math.sqrt(sum(x * x for x in v))
 
 
 def _is_symmetric(A: List[List[float]]) -> bool:
-    """Check whether A is symmetric within the module tolerance."""
+    """Kiểm tra A có đối xứng hay không (theo ngưỡng sai số EPS)."""
     n = len(A)
     for i in range(n):
         for j in range(i + 1, n):
@@ -155,7 +156,9 @@ def _is_symmetric(A: List[List[float]]) -> bool:
 def _sort_eigendecomposition(
     eigenvalues: List[float], eigenvectors: List[List[float]]
 ) -> Tuple[List[float], List[List[float]]]:
-    """Sort eigenvalues ascending and reorder eigenvector columns to match."""
+    """
+    Sắp xếp trị riêng tăng dần và hoán vị lại vector riêng tương ứng.
+    """
     order = sorted(range(len(eigenvalues)), key=lambda i: eigenvalues[i])
     sorted_values = [eigenvalues[i] for i in order]
     sorted_vectors = [[eigenvectors[row][i] for i in order] for row in range(len(eigenvectors))]
@@ -168,7 +171,11 @@ def _verify_diagonalization(
     D: List[List[float]],
     P_inv: List[List[float]],
 ) -> None:
-    """Raise ValueError if P D P^{-1} does not reconstruct A accurately enough."""
+    """
+    Kiểm tra A ≈ P D P^{-1} bằng chuẩn Frobenius tương đối.
+
+    Nếu sai số vượt quá ngưỡng RECON_TOL thì raise ValueError.
+    """
     n = len(A)
     reconstructed = matmul(matmul(P, D), P_inv)
     diff = subtract(reconstructed, A)
@@ -186,12 +193,17 @@ def _verify_diagonalization(
 
 def _has_nonreal_eigenvalues(A: List[List[float]], n: int) -> bool:
     """
-    Detects whether a 2*2 real matrix has complex (nonreal) eigenvalues by checking the characteristic discriminant.
+    Phát hiện trị riêng phức cho ma trận 2x2.
 
-    For n == 2, computes the discriminant of the characteristic polynomial (trace^2 - 4·det) and treats sufficiently negative values as indicating nonreal eigenvalues (threshold -1e-9). For n != 2 this function does not attempt detection and returns False.
+    Ý tưởng:
+        Dựa vào biệt thức của đa thức đặc trưng:
+            Δ = trace^2 - 4*det
 
-    Returns:
-        bool: `True` if the discriminant < -1e-9 (indicating complex eigenvalues), `False` otherwise.
+    Trả về:
+        True nếu Δ < -1e-9 (có trị riêng phức), ngược lại False.
+
+    Ghi chú:
+        Chỉ áp dụng cho n == 2.
     """
     if n != 2:
         return False
@@ -205,17 +217,13 @@ def _has_nonreal_eigenvalues(A: List[List[float]], n: int) -> bool:
 
 def _cluster_eigenvalue_indices(vals: List[float]) -> List[List[int]]:
     """
-    Group indices of nearby eigenvalues into consecutive clusters ordered by eigenvalue.
+    Gom nhóm các trị riêng gần nhau thành từng cụm.
 
-    This function sorts indices by their corresponding values in `vals` and forms consecutive clusters
-    where each new value is within CLUSTER_ABS_TOL + CLUSTER_REL_TOL * max(1.0, |mu|) of the cluster mean `mu`.
+    Hai giá trị được coi là cùng cụm nếu:
+        |v - μ| ≤ CLUSTER_ABS_TOL + CLUSTER_REL_TOL * max(1, |μ|)
 
-    Parameters:
-        vals (List[float]): List of scalar values (typically eigenvalues).
-
-    Returns:
-        List[List[int]]: A list of clusters; each cluster is a list of indices from `vals`.
-        Clusters are returned in ascending order of the associated eigenvalue(s).
+    Trả về:
+        Danh sách các cụm chỉ số.
     """
     n = len(vals)
     if n == 0:
@@ -242,7 +250,9 @@ def _cluster_eigenvalue_indices(vals: List[float]) -> List[List[int]]:
 
 
 def _orthonormal_completion_column(Q: List[List[float]], col_idx: int) -> List[float]:
-    """Complete Q with a unit vector orthogonal to the earlier columns."""
+    """
+    Sinh thêm một vector đơn vị trực giao với các cột trước đó của Q.
+    """
     n = len(Q)
     previous_cols = [[Q[row][j] for row in range(n)] for j in range(col_idx)]
 
@@ -263,10 +273,14 @@ def _orthonormal_completion_column(Q: List[List[float]], col_idx: int) -> List[f
 
 def qr_decomposition(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]]]:
     """
-    Compute the QR decomposition of a square matrix using the modified Gram-Schmidt process.
+    Phân rã QR bằng Gram-Schmidt cải tiến.
 
-    Returns:
-        (Q, R): Tuple of n*n matrices where A = Q R. Q has orthonormal columns for those columns whose norm is >= EPS; R is upper-triangular. If a column of A has norm less than EPS, the corresponding diagonal R[i][i] is zero and the Q column is left as the zero vector.
+    Trả về:
+        Q: ma trận trực chuẩn
+        R: ma trận tam giác trên
+
+    Ghi chú:
+        Nếu cột có chuẩn < EPS, sẽ sinh vector trực giao thay thế.
     """
     n = len(A)
     Q = [[0.0] * n for _ in range(n)]
@@ -294,13 +308,10 @@ def qr_decomposition(A: List[List[float]]) -> Tuple[List[List[float]], List[List
 
 def wilkinson_shift(A: List[List[float]]) -> float:
     """
-    Selects a Wilkinson shift based on the bottom-right 2*2 block of matrix A.
+    Tính Wilkinson shift từ khối 2x2 góc dưới phải.
 
-    If A has size 1 returns A[0][0]. For larger A, computes the eigenvalues of the 2*2 submatrix
-    formed by the last two rows/columns and returns the eigenvalue that is closer to the bottom-right
-    diagonal element. If the 2*2 discriminant is negative due to rounding, it is treated as zero.
-    Returns:
-        The chosen Wilkinson shift (a scalar float).
+    Trả về:
+        Trị riêng gần phần tử A[n-1][n-1] nhất.
     """
     n = len(A)
     if n < 2:
@@ -324,13 +335,13 @@ def wilkinson_shift(A: List[List[float]]) -> float:
 
 def qr_algorithm(A: List[List[float]]) -> List[float]:
     """
-    Compute the eigenvalues of a real square matrix using shifted QR iteration with Wilkinson shifts and deflation.
+    Tính trị riêng bằng QR iteration có shift (Wilkinson) và deflation.
 
-    Parameters:
-        A (List[List[float]]): Square matrix (list of rows) whose eigenvalues are sought.
+    Trả về:
+        Danh sách trị riêng (float).
 
-    Returns:
-        List[float]: Approximated eigenvalues of A as floats. Values are returned in the order discovered by deflation (typically corresponding to bottom-right toward top-left of the working matrix).
+    Lỗi:
+        Raise ValueError nếu không hội tụ sau MAX_ITER.
     """
     n = len(A)
     Ak = [row[:] for row in A]
@@ -369,15 +380,13 @@ def qr_algorithm(A: List[List[float]]) -> List[float]:
 
 def null_space_basis(A: List[List[float]]) -> List[List[float]]:
     """
-    Compute a basis for the null space (kernel) of A.
+    Tìm cơ sở của không gian kernel của A.
 
-    Each returned vector is a column vector (as a list) corresponding to one free variable in a reduced row-echelon form of A; the set spans ker(A). If A has full column rank (no free variables), an empty list is returned.
+    Trả về:
+        Danh sách vector cơ sở (mỗi vector là nghiệm tự do).
 
-    Parameters:
-        A (List[List[float]]): m-by-n matrix (list of rows) representing the linear map whose null space is sought.
-
-    Returns:
-        List[List[float]]: A list of basis vectors for ker(A); each vector has length equal to the number of columns of A.
+    Nếu hạng đầy đủ:
+        Trả về [].
     """
     n = len(A)
     m = len(A[0])
@@ -428,13 +437,10 @@ def null_space_basis(A: List[List[float]]) -> List[List[float]]:
 
 def null_space(A: List[List[float]]) -> List[float]:
     """
-    Return a single basis vector of the null space of matrix A, or an empty list if the null space is {0}.
+    Trả về một vector thuộc không gian kernel của A.
 
-    Parameters:
-        A (List[List[float]]): Real matrix with m rows and n columns.
-
-    Returns:
-        List[float]: A vector of length n that spans (one element of) the null space of A if a nontrivial null space exists, otherwise an empty list.
+    Nếu không tồn tại:
+        Trả về [].
     """
     b = null_space_basis(A)
     return b[0] if b else []
@@ -443,24 +449,26 @@ def null_space(A: List[List[float]]) -> List[float]:
 # Main function: diagonalize
 def diagonalize(A: List[List[float]]) -> Tuple[List[List[float]], List[List[float]], List[List[float]]]:
     """
-    Compute a real diagonalization A = P D P^{-1} for the square matrix A.
+    Chéo hóa ma trận thực A: A = P D P^{-1}.
 
-    This routine finds eigenvalues with a shifted QR iteration (Wilkinson shift + deflation),
-    groups nearby eigenvalues, builds eigenvectors from null spaces of (A - λI), assembles
-    P from those eigenvectors, computes P^{-1} by Gauss-Jordan, constructs the diagonal D,
-    and verifies the decomposition by the relative Frobenius norm (compare reconstructed A to input).
+    Quy trình:
+        - Nếu A đối xứng → dùng Jacobi
+        - Nếu không → QR algorithm để tìm trị riêng
+        - Gom cụm trị riêng gần nhau
+        - Tìm vector riêng bằng null space của (A - λI)
+        - Lập P từ các vector riêng
+        - Tính P^{-1}
+        - Kiểm tra lại bằng chuẩn Frobenius
 
-    Returns:
-        tuple: (P, D, P_inv) where each is an n*n matrix represented as a list of lists;
-            P contains eigenvectors as columns, D is diagonal with the computed eigenvalues,
-            and P_inv is the inverse of P.
+    Trả về:
+        (P, D, P_inv)
 
-    Raises:
-        ValueError: if A is not a non-empty list matrix, not square, or invalid input;
-        ValueError: if a 2*2 discriminant test indicates nonreal eigenvalues (diagonalization over R not possible);
-        ValueError: if the algorithm determines A is not diagonalizable (insufficient null-space dimension or missing eigenvectors);
-        ValueError: if eigenvectors are linearly dependent (P is noninvertible);
-        ValueError: if the relative Frobenius reconstruction error exceeds RECON_TOL.
+    Lỗi:
+        - Ma trận không vuông
+        - Có trị riêng phức (2x2)
+        - Không đủ vector riêng độc lập
+        - P không khả nghịch
+        - Sai số tái tạo vượt ngưỡng
     """
     if not isinstance(A, list) or len(A) == 0:
         raise ValueError("Invalid matrix")
