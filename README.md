@@ -11,7 +11,7 @@ From-scratch Python implementations of Gaussian elimination, SVD decomposition, 
 - [Setup](#setup)
 - [Parts](#parts)
   - [Part 1 — Gaussian Elimination](#part-1--gaussian-elimination)
-  - [Part 2 — SVD Decomposition + Manim Video](#part-2--qr-decomposition--manim-video)
+  - [Part 2 — SVD Decomposition + Manim Video](#part-2--svd-decomposition--manim-video)
   - [Part 3 — Performance Analysis](#part-3--performance-analysis-bonus)
 - [Running the Notebooks](#running-the-notebooks)
 - [Team](#team)
