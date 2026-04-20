@@ -390,6 +390,146 @@ Trong môi trường dấu phẩy động, thuật toán Gram-Schmidt cổ đi�
 
 \newpage
 
+\section{Kết quả}
+
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.6}
+    \setlength{\tabcolsep}{5pt}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \rowcolor[rgb]{0.8, 0.9, 1.0}
+        $\mathbf{A}$ & $\mathbf{U}$ & $\mathbf{\Sigma}$ & $\mathbf{V^T}$ & $\mathbf{U\Sigma V^T}$ \\ 
+        \hline
+        
+        % ===== Test case 2x2 =====
+        $\begin{bmatrix}-1.0 & 3.0 \\ -2.0 & 4.0\end{bmatrix}$ &
+        $\begin{bmatrix}0.576 & 0.8174 \\ 0.8174 & -0.576\end{bmatrix}$ &
+        $\begin{bmatrix}5.465 & 0.0 \\ 0.0 & 0.366\end{bmatrix}$ &
+        $\begin{bmatrix}-0.4046 & 0.9145 \\ 0.9145 & 0.4046\end{bmatrix}$ &
+        $\begin{bmatrix}-1.0 & 3.0 \\ -2.0 & 4.0\end{bmatrix}$ \\ 
+        \hline
+        
+        % ===== Test case 3x3 =====
+        $\begin{bmatrix}
+        1.0 & 2.0 & 3.0 \\
+        4.0 & 5.0 & 6.0 \\
+        7.0 & 8.0 & 9.0
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.2148 & -0.8872 & 0.8981 \\
+        0.5206 & -0.2496 & 0.4082 \\
+        0.8263 & 0.3879 & -0.1633
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        16.8481 & 0.0 & 0.0 \\
+        0.0 & 1.0684 & 0.0 \\
+        0.0 & 0.0 & 0.0
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.4797 & 0.5724 & 0.6651 \\
+        0.7767 & 0.0757 & -0.6253 \\
+        0.4082 & -0.8165 & 0.4082
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1.0 & 2.0 & 3.0 \\
+        4.0 & 5.0 & 6.0 \\
+        7.0 & 8.0 & 9.0
+        \end{bmatrix}$ \\ 
+        \hline
+
+        % ===== Singular matrix =====
+        $\begin{bmatrix}
+        1 & 1 & 1\\
+        2 & 2 & 2\\
+        3 & 3 & 3
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.2673 & -0.3333 & 0.0\\
+        0.5345 & -0.6667 & 0.0\\
+        0.8018 & -0.6667 & 0.0
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        6.4807 & 0 & 0\\
+        0 & 0 & 0\\
+        0 & 0 & 0
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.5774 & 0.5774 & 0.5774\\
+        0.4082 & 0.4082 & -0.8165\\
+        0.7071 & -0.7071 & 0
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1 & 1 & 1\\
+        2 & 2 & 2\\
+        3 & 3 & 3
+        \end{bmatrix}$ \\ 
+        \hline
+
+        % ===== Identity =====
+        $\begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+        \end{bmatrix}$ \\ 
+        \hline
+
+        % ===== Upper triangular =====
+        $\begin{bmatrix}
+        5 & 4 & 4\\
+        0 & 2 & 1\\
+        0 & 0 & 0.5
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.9761 & 0.2154 & -0.028\\
+        0.2144 & -0.9762 & -0.0339\\
+        0.0346 & -0.0271 & 0.999
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        7.727 & 0 & 0\\
+        0 & 1.5382 & 0\\
+        0 & 0 & 0.4207
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.6316 & 0.5608 & 0.5353\\
+        0.7002 & -0.7091 & -0.0833\\
+        -0.3329 & -0.4274 & 0.8405
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        5 & 4 & 4\\
+        0 & 2 & 1\\
+        0 & 0 & 0.5
+        \end{bmatrix}$ \\ 
+        \hline
+        
+    \end{tabular}
+    }
+    \caption{Kết quả phân rã SVD cho các ma trận kiểm thử}
+\end{table}
+
+\newpage
+
 \section{Trực quan hóa với Manim}
 
 \subsection{Nội dung của video}
