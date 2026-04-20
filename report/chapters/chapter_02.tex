@@ -2,6 +2,620 @@
 
 \newpage
 
-\section{<tên mục 1>}
+\section{Phân rã giá trị suy biến (SVD)}
 
-\section{<tên mục 2>}
+\subsection{Định nghĩa ma trận SVD}
+
+Phân rã giá trị suy biến - Singular Value Decomposition là một công cụ mạnh mẽ trong đại số tuyến tính, nó cho phép phân tích một ma trận bất kỳ $A \in \mathbb{R}^{m \times n}$ thành ba ma trận đặc biệt:
+
+{
+\begin{equation}
+    A = U \Sigma V^T
+\end{equation}
+}
+
+Trong đó:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item $U \in \mathbb{R}^{m \times m}$: Là ma trận trực giao ($U^TU=I_{m}$), các cột của nó là các vector suy biến trái.
+    \item $\Sigma \in \mathbb{R}^{m \times n}$: Là ma trận đường chéo không vuông, chứa các giá trị suy biến $\sigma_{i}$ trên đường chéo chính.
+    \item $V^T \in \mathbb{R}^{n \times n}$: Là ma trận trực giao ($V^TV = I_{n}$); các vector suy biến phải là các cột của $V$ (tương đương các hàng của $V^T$).
+\end{itemize}
+
+\subsection{Tính chất của các giá trị suy biến}
+
+\textbf{Thứ tự và dấu}: Các giá trị suy biến luôn không âm và thường được sắp xếp giảm dần.
+
+\begin{equation}
+    \sigma_1 \geq \sigma_2 \geq \dots \geq \sigma_p \geq 0 \text{ với } p = \min(m, n)
+\end{equation}
+
+\textbf{Hạng ma trận}: Số lượng các giá trị suy biến khác 0 tương ứng với hạng của ma trận $A$.
+
+\textbf{Xấp xỉ hạng thấp}: SVD cung cấp xấp xỉ tốt nhất hạng $k$ qua công thức $A_k = \sum_{i = 1}^{k} \sigma_i u_i v_i^T$, ứng dụng trong nén ảnh và khử nhiễu.
+
+\subsection{Mối liên hệ với giá trị riêng (Eigenvalues)}
+
+SVD là sự tổng quát hóa của phép chéo hóa, có mối quan hệ chặt chẽ với các giá trị riêng của ma trận đối xứng:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Công thức liên hệ}: Các giá trị suy biến $\sigma_i$ của $A$ là căn bậc hai của các giá trị riêng $\lambda_i$ của ma trận $A^TA$:
+
+    \begin{equation}
+        \sigma_i = \sqrt{\lambda_i(A^TA)}
+    \end{equation}
+
+    \item \textbf{Cơ sở vector}: Các cột của $V$ là các vector riêng của $A^TA$, trong khi các cột của $U$ là các vector riêng của $AA^T$.
+\end{itemize}
+
+\section{Ý nghĩa của phân rã SVD}
+
+\subsection{Cơ chế hoạt động}
+
+SVD không chỉ đơn thuần là một công thức đại số, về mặt bản chất nó chính là một chuỗi các phép biến đổi hình học cơ bản. Bất kỳ ma trận $A \in \mathbb{R}^{m \times n}$ nào cũng biểu diễn một phép biến đổi tuyến tính từ không gian $\mathbb{R}^n$ sang không gian $\mathbb{R}^m$.
+
+SVD cho phép phân tách phép biến đổi này thành ba bước độc lập:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item Phép xoay đầu tiên ($V^T$): Ma trận trực giao $V^T$ thực hiện xoay hệ tọa độ trong không gian sao cho các trục tọa độ ban đầu trùng với các vector suy biến phải ($v_{i}$). Bước này không làm thay đổi độ dài của các vector.
+    \item Phép co giãn ($\Sigma$): Ma trận đường chéo $\Sigma$ thực hiện co giãn theo không gian dọc theo các trục tọa độ mới. Các vector sẽ được co giãn hoặc rút ngắn theo các hệ số $\sigma_i$. Nếu $\sigma_i = 0$, chiều không gian tương ứng bị triệt tiêu, điều đó giải thích vì sao mà SVD có thể xác định được hạng (rank) và không gian null (nullspace).
+    \item Phép xoay thứ hai ($U$): Ma trận trực giao $U$ xoay hệ tọa độ một lần nữa trong không gian để đưa các vector về vị trí cuối cùng theo các vector suy biến trái.
+\end{itemize}
+
+\begin{figure}[h]
+    % \vspace{0.25cm}
+    \centering
+    \scalebox{1}{
+        \begin{minipage}{\textwidth}
+            \centering
+            \includegraphics[width=0.24\textwidth]{images/chapter_02/svd-1.png}\hfill
+            \includegraphics[width=0.24\textwidth]{images/chapter_02/svd-2.png}\hfill
+            \includegraphics[width=0.24\textwidth]{images/chapter_02/svd-3.png}\hfill
+            \includegraphics[width=0.24\textwidth]{images/chapter_02/svd-4.png}
+        \end{minipage}
+    }
+    \caption{Các bước phân rã SVD}
+    \label{fig:svd_decomp_steps}
+\end{figure}
+
+\newpage
+
+\subsection{Vì sao cơ chế này quan trọng?}
+
+Trong khi phép chéo hóa $A = PDP^{-1}$ chỉ hoạt động khi ta có thể tìm các trục mà tại đó ma trận chỉ thực hiện co giãn thì SVD chỉ ra rằng mọi ma trận (kể cả ma trận hình chữ nhật) đều có thể tìm được một cặp cơ sở trực chuẩn ($V$ và $U$) để biến hình cầu thành một hình ellipse.
+
+Vì $U$ và $V$ là các ma trận trực giao, chúng không làm khuếch đại sai số tính toán làm cho thuật toán này trở nên ổn định nhất trong đại số tuyến tính. 
+
+\section{Thuật toán giá trị riêng Jacobi}
+
+\subsection{Định lý bất khả Abel}
+
+Định lý phát biểu rằng \textbf{không tồn tại nghiệm đại số} - tức là nghiệm được biểu diễn bằng căn thức của phương trình đa thức tổng quát \textbf{bậc 5 hoặc lớn hơn} với các hệ số bất kỳ.
+
+Trong quá trình tiến hành thuật toán SVD, chúng ta cần phải tìm các trị riêng của ma trận đối xứng $A^TA$. Việc tìm giá trị riêng tương đương với việc tìm nghiệm của đa thức đặc trưng $P(\lambda) = \det(A^TA - \lambda I) = 0$ nên đối với các ma trận có kích thước $\geq 5$, chúng ta không thể sử dụng các phương pháp đại số thông thường để giải quyết bài toán trên.
+
+Dựa trên giới hạn của định lý Abel, ta phải sử dụng các phương pháp lặp số trị để giải quyết bài toán trên. Thuật toán Jacobi là lựa chọn tối ưu cho ma trận đối xứng vì:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item Nó triệt tiêu các phần tử ngoài đường chéo bằng các phép xoay cho đến khi ma trận dần hội tụ về dạng đường chéo.
+    \item Đảm bảo tính số học cao, phù hợp với yêu cầu ổn định số học của đồ án.
+\end{itemize}
+
+\newpage
+
+\subsection{Chi tiết thuật toán}
+
+\subsubsection{Phép xoay Jacobi hai phía (Two-sided Jacobi)\protect\footnotemark}
+\footnotetext{Ngoài ra còn tồn tại phương pháp Jacobi một phía với nguyên lý tương tự.}
+
+Tại mỗi bước lặp, thuật toán chọn một phần tử ngoài đường chéo $s_{ij}$ (thường là phần tử có giá trị tuyệt đối lớn nhất) và triệt tiêu nó về 0 bằng một phép xoay trực giao, gọi là \textbf{ma trận xoay Jacobi} $G(i, j, \theta)$.
+
+Ma trận $G$ giống với ma trận đơn vị nhưng có phần tử thay đổi tại bốn vị trí: $g_{ii}, g_{jj}, g_{ij} \text{ và } g_{ji}$. Khi đó, ma trận được cập nhật theo công thức: $S' = G^T S G$.
+
+\begin{equation}
+    \scalebox{0.8}{
+    $
+    G(i, j, \theta) = 
+    \begin{bmatrix}
+    1 &        &          & \text{\small Cột $i$} &        & \text{\small Cột $j$} &   \\
+    & \ddots &          & \downarrow          &        & \downarrow                 &   \\
+    &        & 1        &                     &        &                            &   \\
+    &        &          & \cos\theta          & \dots  & -\sin\theta                & \rightarrow \text{\small Dòng $i$} \\
+    &        &          & \vdots              & 1      & \vdots                     &   \\
+    &        &          & \sin\theta          & \dots  & \cos\theta                 & \rightarrow \text{\small Dòng $j$} \\
+    &        &          &                     &        & 1                          &   \\
+    &        &          &                     &        &        & \ddots             &   \\
+    &        &          &                     &        &        &                    & 1
+    \end{bmatrix}
+    $
+    }
+\end{equation}
+
+Vì $G$ là ma trận trực giao nên phép biến đổi trên giữ nguyên đa thức đặc trưng của ma trận. Tức là $S$ và $S'$ có cùng tập hợp các trị riêng. Do đó mà ta có thể lặp lại quá trình mà vẫn giữ được các trị riêng ban đầu của $A^TA$.
+
+Không những thế, ma trận trực giao $G$ có đặc tính bảo toàn bình phương tất cả các phần tử. Khi phép quay làm một phần tử ngoài đường chéo triệt tiêu về 0, giá trị đó không biến mất mà được "đẩy" vào các phần tử trên đường chéo chính.
+
+\subsubsection{Tính toán góc xoay $\theta$}
+
+Để phần tử $s_{ij}'$ trở về bằng $0$ sau phép biến đổi, góc $\theta$ được xác định dựa trên các phần tử hiện tại của ma trận $S$:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item Nếu $s_{ii} = s_{jj}$ thì $\theta = \pi/4$.
+    \item Nếu $s{ii} \neq s_{jj}$, ta tính $\theta$ thông qua giá trị $\tau = \frac{s_{jj} - s_{ii}}{2s_{ij}}$, sau đó tìm $t = tan(\theta)$ là nghiệm của phương trình $t^2 + 2rt - 1 = 0$.
+\end{itemize}
+
+\newpage
+
+\subsubsection{Các bước thực hiện thuật toán}
+
+\begin{algorithm}[H]
+\caption{\textproc{Thuật toán trị riêng Jacobi}}
+\begin{algorithmic}[1]
+\Procedure{jacobi\_eigenvalues(A, $\epsilon$, max\_iter)}{}
+    \State $S \gets A^TA$, $V \gets I_n$
+    
+    \State $iter \gets 0$
+
+    \While{$iter < max\_iter$}
+        \State $max\_val \gets \max_{i \neq j}|s_{ij}|$
+        \If{$max\_val < \epsilon$}
+             \State \textbf{break}
+         \EndIf
+         \State $cos(\theta), sin(\theta) \text{ được tính từ } s_{ii}, s_{jj}, s_{ij}$
+         \State $S \gets G^T S G$ (ma trận $S$ dần trở thành ma trận đường chéo $\Sigma^2$)
+         \State $V \gets V G$ (các cột của $V$ dần trở thành vector suy biến phải)
+        \State $iter \gets iter + 1$
+     \EndWhile
+    \State $eigenvalues \gets \text{Các phần tử trên đường chéo chính của } S$
+    \State \Return $eigenvalues, V$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Ghi chú:}
+\begin{itemize}[itemsep=2.5pt, leftmargin=1cm]
+    \item Tại mỗi bước lặp, việc lựa chọn cặp chỉ số $(i, j)$ có thể dựa trên phần tử ngoài đường chéo có giá trị tuyệt đối lớn nhất nhằm tăng tốc độ hội tụ.
+    
+    \item Góc quay $\theta$ được tính toán sao cho triệt tiêu phần tử $s_{ij}$, đồng thời đảm bảo ma trận quay là trực giao.
+    
+    \item Các phép quay cần được tích lũy qua các bước lặp để xây dựng các ma trận trực giao cuối cùng.
+    
+    \item Thuật toán dừng khi tất cả các phần tử ngoài đường chéo đủ nhỏ (theo ngưỡng $\varepsilon$ cho trước).
+    
+    \item Trong thực tế, có thể cần nhiều vòng lặp qua toàn bộ các cặp chỉ số để đạt được sự hội tụ.
+\end{itemize}
+
+\newpage
+
+\section{Chéo hóa ma trận}
+
+\subsection{Cơ sở lý thuyết}
+
+Một ma trận vuông $A \in \mathbb{R}^{n \times n}$ được gọi là chéo hóa được nếu tồn tại một ma trận khả nghịch $P$ và một ma trận đường chéo $D$ sao cho:
+
+{\large
+\begin{equation}
+    A = PDP^{-1}
+\end{equation}
+}
+
+Trong đó:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item $D$ là ma trận đường chéo $\operatorname{diag}(\lambda_1, \lambda_2, \dots, \lambda_n)$, với $\lambda_i$ là các giá trị riêng của $A$.
+    \item $P$ là ma trận các vector riêng, trong đó mỗi cột của $P$ là một vector riêng ứng với giá trị riêng $\lambda_i$.
+\end{itemize}
+
+Quá trình chéo hóa phụ thuộc hoàn toàn vào việc tìm kiếm các đặc trưng phổ của ma trận:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Trị riêng} $\lambda$: Trị riêng được xác định từ phương trình đặc trưng $det(A - \lambda I) = 0$. Đây là giá trị vô hướng thể hiện mức độ co giãn của ma trận theo một hướng nhất định.
+    \item \textbf{Vector riêng} $x$: Vector riêng tương ứng là nghiệm của hệ $(A - \lambda I)x = 0$. Nó đại diện cho hướng mà tại đó phép biến đổi tuyến tính chỉ đóng vai trò như phép nhân vô hướng.
+    \item \textbf{Điều kiện chéo hóa}: Ma trận $A \in \mathbb{R}^{n \times n}$ chéo hóa được khi và chỉ khi tồn tại đủ $n$ vector riêng độc lập tuyến tính để cấu thành các cột của ma trận khả nghịch $P$.
+\end{itemize}
+
+\subsection{Trường hợp đặc biệt: Ma trận đối xứng thực}
+
+\subsubsection{Định lý phổ (Spectral Theorem)}
+
+Đối với ma trận vuông bất kỳ, việc chéo hóa được hay không phụ thuộc vào số lượng vector riêng độc lập tuyến tính. Tuy nhiên đối với ma trận đối xứng thực $A$, định lý phổ khẳng định:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item $A$ \textbf{luôn} chéo hóa được.
+    \item Tất cả các trị riêng của $A$ đều là \textbf{số thực}.
+    \item Các vector riêng ứng với các giá trị riêng khác nhau của $A$ luôn \textbf{trực giao} với nhau.
+\end{itemize}
+
+\subsubsection{Chéo hóa trực giao}
+
+Vì các vector riêng của ma trận đối xứng thực có thể chọn để tạo thành một bộ cơ sở trực chuẩn, công thức chéo hóa trở thành:
+
+{\large
+\begin{equation}
+    A = QDQ^{-1}
+\end{equation}
+}
+
+Trong đó:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item $Q$ là ma trận trực giao thỏa mãn $Q^{-1} = Q^T$. Điều này giúp việc tính toán ma trận nghịch đảo trở nên đơn giản bằng một phép chuyển vị thay vì tốn chi phí $O(n^3)$ thông thường với ma trận $P$.
+    \item $D$ là ma trận đường chéo chứa các trị riêng của $A$. 
+\end{itemize}
+
+\subsubsection{Vai trò và ý nghĩa trong tính toán}
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Sự ổn định}: Các phép biến đổi trực giao không làm khuếch đại sai số làm tròn, đảm bảo độ chính xác cực kỳ cao ($< 10^{-10}$) khi xử lý trong thực tế.
+    \item \textbf{Mối liên hệ với SVD}: Đây là sự kết nối trực tiếp đến phân rã SVD. Trong SVD, chúng ta phải thực hiện chéo hóa ma trận đối xứng $A^TA$ để tìm các giá trị suy biến và vector suy biến phải. 
+    \item \textbf{Tối ưu hiệu năng}: Đối với ma trận đối xứng xác định dương, chi phí tính toán có thể giảm xuống bằng một nửa so với các phương pháp thông thường.
+\end{itemize}
+
+\section{Phương pháp tìm trị riêng và vector riêng}
+
+\subsection{Thuật toán QR với kỹ thuật Deflation}
+
+Thuật toán QR là một phương pháp nhằm đưa ma trận $A$ về dạng tam giác trên (dạng Schur). Khi ma trận $A$ là ma trận tam giác trên, các trị riêng chính là các phần tử nằm trên đường chéo chính.
+
+\newpage
+
+\subsubsection{Các bước thực hiện}
+
+\begin{enumerate}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Khởi tạo:} Đặt $A_0 = A$.
+    
+    \item \textbf{Lặp (Iteration):} Tại mỗi bước $k$, thực hiện phân rã ma trận:
+    \begin{equation*}
+        A_k = Q_k R_k
+    \end{equation*}
+    Sau đó cập nhật ma trận cho bước kế tiếp bằng cách nhân ngược theo thứ tự:
+    \begin{equation*}
+        A_{k+1} = R_k Q_k
+    \end{equation*}
+    \textit{Ghi chú: $A_{k+1}$ đồng dạng với $A_k$ ($A_{k+1} = Q_k^{-1} A_k Q_k$), nên chúng có cùng tập trị riêng.}
+    
+    \item \textbf{Hội tụ:} Qua nhiều vòng lặp, các phần tử phía dưới đường chéo chính tiến dần về số 0.
+\end{enumerate}
+
+\subsubsection{Kỹ thuật Deflation}
+
+Để tối ưu tốc độ của thuật toán, sau khi phần tử $A[n - 1][n - 2]$ đủ nhỏ, tức là $A[n - 1][n - 2] < \epsilon$ với $\epsilon$ là ngưỡng hội tụ cho phép:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item Ta coi phần tử ở góc cuối $A[n - 1][n - 1]$ đã hội tụ thành một trị riêng.
+    \item Thu nhỏ ma trận bằng cách cắt bỏ hàng cuối và cột cuối (giảm kích thước từ $n$ xuống $n - 1$)
+    \item Tiếp tục quy trình đến khi ma trận chỉ còn kích thước $1 \times 1$.
+\end{itemize}
+
+\subsection{Dịch chuyển Wilkinson (Wilkinson Shift)}
+
+Wilkinson shift được sử dụng để tăng tốc độ hội tụ của thuật toán QR. Bằng cách chọn một giá trị dịch chuyển gần với trị riêng thực của ma trận (ước lượng từ khối ma trận $2 \times 2$ cuối), thuật toán làm giảm nhanh các phần tử đường chéo, giúp quá trình deflation diễn ra nhanh hơn giúp cải thiện hiệu năng đáng kể.
+
+\subsubsection{Công thức dịch chuyển}
+
+Thay vì phân rã trực tiếp $A_k$, ta thực hiện:
+
+\begin{equation}
+    A_k - \mu I = Q_k R_k \quad\qquad
+    A_{k+1} = R_k Q_k + \mu I
+\end{equation}
+
+\subsubsection{Tính giá trị Wilkinson Shift}
+
+Giá trị $\mu$ được chọn là trị riêng của khối con $2 \times 2$ ở góc dưới bên phải ma trận, cụ thể là nghiệm gần với phần tử đường chéo cuối cùng nhất.
+
+Xét khối $2 \times 2$ cuối:
+
+\begin{equation*}
+    B = \begin{pmatrix}
+        a & b \\
+        c & d
+    \end{pmatrix} = 
+    \begin{pmatrix}
+        A_{n-2,n-2} & A_{n-2,n-1} \\
+        A_{n-1,n-2} & A_{n-1,n-1}
+    \end{pmatrix}
+\end{equation*}
+
+\begin{enumerate}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Tìm nghiệm}: Giải phương trình đặc trưng của $B$:
+    \begin{equation*}
+        \lambda^2 - tr(B)\lambda + det(B) = 0
+        \quad \Rightarrow \quad
+        \lambda = \frac{(a + d) \pm \sqrt{(a + d)^2 - 4(ad - bc)}}{2}
+    \end{equation*}
+    
+    \item \textbf{Chọn $\mu$}: $\mu$ là trị riêng gần với phần tử đường chéo cuối cùng nhất, tức là trị riêng có giá trị tuyệt đối nhỏ nhất trong hai nghiệm.
+\end{enumerate}
+
+\subsection{Phân rã QR bằng Gram-Schmidt cải tiến}
+
+Trong môi trường dấu phẩy động, thuật toán Gram-Schmidt cổ điển dễ làm mất đi tính trực giao giữa các vector do sai số làm tròn trong quá trình tích lũy. Cụ thể hơn, nguyên nhân nằm ở các phép trừ liên tiếp giữa các vector gần song song theo công thức:
+
+\begin{equation}
+    v_j \leftarrow v_j - \sum_{i = 1}^{k}(q_i^T v_j)q_i
+\end{equation}
+
+\noindent Nếu $Q$ không trực giao đủ tốt sẽ dẫn đến $Q^TQ \neq I$ và làm cho lặp $QR$ bị sai và cuối cùng các trị riêng bị sai hoặc hội tụ chậm.
+
+Đối với thuật toán Gram-Schmidt cải tiến, việc trực giao hóa từng bước sẽ được thực hiện ngay lập tức ngay sau khi có được $q_i$
+
+\begin{equation}
+    v_j \leftarrow v_j - (q_i^T v_j)q_i
+\end{equation}
+
+\noindent sẽ giúp $v_j$ cập nhật liên tục và sẽ làm giảm sai số tích lũy. Do đó mà Gram-Schmidt cải tiến thường được sử dụng phổ biến hơn trong thực tế so với cách thông thường.
+
+\newpage
+
+\begin{algorithm}[H]
+\caption{\textproc{Thuật toán Gram-Schmidt cải tiến}}
+\begin{algorithmic}[1]
+\Procedure{qr\_decomposition(A)}{}
+    \State $n \gets \text{số cột của } A$
+    \State $Q \gets 0_{n \times n}, \; R \gets 0_{n \times n}$
+    \State $V \gets \text{các cột của } A$
+
+    \For{$i = 1$ to $n$}
+        \State $R_{ii} \gets \|V_i\|_2$
+        
+        \If{$R_{ii} < \epsilon$}
+            \State $q_i \gets$ vector đơn vị trực giao với các cột trước đó của $Q$
+            \State $R_{ii} \gets 0$
+        \Else
+            \State $q_i \gets \dfrac{V_i}{R_{ii}}$
+        \EndIf
+        
+        \State Gán $q_i$ làm cột thứ $i$ của $Q$
+        
+        \For{$j = i+1$ to $n$}
+            \State $R_{ij} \gets q_i^T V_j$
+            \State $V_j \gets V_j - R_{ij} q_i$
+        \EndFor
+    \EndFor
+
+    \State \Return $Q, R$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Điều kiện dừng và hội tụ:}
+\begin{itemize}[itemsep=2.5pt, leftmargin=1cm]
+    \item Ngưỡng sai số: $\epsilon = 1e-10$
+    
+    \item Deflation khi: $|A[n - 1][n - 2]| < \epsilon$
+    
+    \item Số vòng lặp tối đa: $MAX\_ITERATION = 3000$ \\ Nếu không hội tụ sau số vòng lặp này, thuật toán sẽ báo lỗi.
+\end{itemize}
+
+\newpage
+
+\section{Kết quả}
+
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.6}
+    \setlength{\tabcolsep}{5pt}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \rowcolor[rgb]{0.8, 0.9, 1.0}
+        $\mathbf{A}$ & $\mathbf{U}$ & $\mathbf{\Sigma}$ & $\mathbf{V^T}$ & $\mathbf{U\Sigma V^T}$ \\ 
+        \hline
+        
+        % ===== Test case 2x2 =====
+        $\begin{bmatrix}-1.0 & 3.0 \\ -2.0 & 4.0\end{bmatrix}$ &
+        $\begin{bmatrix}0.576 & 0.8174 \\ 0.8174 & -0.576\end{bmatrix}$ &
+        $\begin{bmatrix}5.465 & 0.0 \\ 0.0 & 0.366\end{bmatrix}$ &
+        $\begin{bmatrix}-0.4046 & 0.9145 \\ 0.9145 & 0.4046\end{bmatrix}$ &
+        $\begin{bmatrix}-1.0 & 3.0 \\ -2.0 & 4.0\end{bmatrix}$ \\ 
+        \hline
+        
+        % ===== Test case 3x3 =====
+        $\begin{bmatrix}
+        1.0 & 2.0 & 3.0 \\
+        4.0 & 5.0 & 6.0 \\
+        7.0 & 8.0 & 9.0
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.2148 & -0.8872 & 0.8981 \\
+        0.5206 & -0.2496 & 0.4082 \\
+        0.8263 & 0.3879 & -0.1633
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        16.8481 & 0.0 & 0.0 \\
+        0.0 & 1.0684 & 0.0 \\
+        0.0 & 0.0 & 0.0
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.4797 & 0.5724 & 0.6651 \\
+        0.7767 & 0.0757 & -0.6253 \\
+        0.4082 & -0.8165 & 0.4082
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1.0 & 2.0 & 3.0 \\
+        4.0 & 5.0 & 6.0 \\
+        7.0 & 8.0 & 9.0
+        \end{bmatrix}$ \\ 
+        \hline
+
+        % ===== Singular matrix =====
+        $\begin{bmatrix}
+        1 & 1 & 1\\
+        2 & 2 & 2\\
+        3 & 3 & 3
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.2673 & -0.3333 & 0.0\\
+        0.5345 & -0.6667 & 0.0\\
+        0.8018 & -0.6667 & 0.0
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        6.4807 & 0 & 0\\
+        0 & 0 & 0\\
+        0 & 0 & 0
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.5774 & 0.5774 & 0.5774\\
+        0.4082 & 0.4082 & -0.8165\\
+        0.7071 & -0.7071 & 0
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1 & 1 & 1\\
+        2 & 2 & 2\\
+        3 & 3 & 3
+        \end{bmatrix}$ \\ 
+        \hline
+
+        % ===== Identity =====
+        $\begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        1 & 0 & 0\\
+        0 & 1 & 0\\
+        0 & 0 & 1
+        \end{bmatrix}$ \\ 
+        \hline
+
+        % ===== Upper triangular =====
+        $\begin{bmatrix}
+        5 & 4 & 4\\
+        0 & 2 & 1\\
+        0 & 0 & 0.5
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.9761 & 0.2154 & -0.028\\
+        0.2144 & -0.9762 & -0.0339\\
+        0.0346 & -0.0271 & 0.999
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        7.727 & 0 & 0\\
+        0 & 1.5382 & 0\\
+        0 & 0 & 0.4207
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        0.6316 & 0.5608 & 0.5353\\
+        0.7002 & -0.7091 & -0.0833\\
+        -0.3329 & -0.4274 & 0.8405
+        \end{bmatrix}$ &
+        $\begin{bmatrix}
+        5 & 4 & 4\\
+        0 & 2 & 1\\
+        0 & 0 & 0.5
+        \end{bmatrix}$ \\ 
+        \hline
+        
+    \end{tabular}
+    }
+    \caption{Kết quả phân rã SVD cho các ma trận kiểm thử}
+\end{table}
+
+\newpage
+
+\section{Trực quan hóa với Manim}
+
+\subsection{Nội dung của video}
+
+Video tập trung phân tích và mô phỏng lý thuyết \textbf{phân rã giá trị suy biến (Singular Value Decomposition - SVD)}, một phương pháp chuẩn hóa ma trận có tính tổng quát cao, khắc phục giới hạn tồn tại của phương pháp chéo hóa (Diagonalization) truyền thống. Nội dung video được cấu trúc thành ba phần chính:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Phân tích hình học và đại số}: Minh họa quy trình phân tách một phép biến đổi tuyến tính thành tích của ba ma trận thành phần: Phép xoay trong không gian nguồn thông qua ma trận đơn nhất $V^T$. Phép co giãn hình học (scaling) dựa trên ma trận đường chéo các giá trị suy biến $\Sigma$. Phép xoay trong không gian đích thông qua ma trận đơn nhất $U$.
+    \item \textbf{So sánh tính ưu việt}: Phân tích lý do vì sao SVD được coi là phương pháp phân rã tối ưu trong việc xử lý các ma trận không vuông hoặc không đầy đủ hạng bằng cách sử dụng hệ hai cơ sở trực chuẩn khác biệt ($U$ và $V$), thay vì sử dụng một hệ cơ sở trực chuẩn duy nhất như trong chéo hóa ma trận.
+    \item \textbf{Ứng dụng thực tiễn}: Trình bày nguyên lý hoạt động của SVD như một công cụ lọc nhiễu và nén thông tin thông qua việc xấp xỉ ma trận hạng thấp. Các ví dụ thực tiễn bao gồm: nén dữ liệu hình ảnh, phân tích thành phần chính (PCA) trong thống kê, phân tích ngữ nghĩa ẩn (Latent Semantic Analysis - LSA)...
+\end{itemize}
+
+\subsection{Động lực thực hiện}
+
+Động lực chính của đồ án xuất phát từ việc tối ưu hóa khả năng tiếp cận và nhận thức đối với một trong những khái niệm nền tảng phức tạp nhất của Đại số tuyến tính:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Trực qua hóa sự trừu tượng}: Trong môi trường học thuật, các phép phân rã chỉ thường được tiếp cận thông qua các hệ thống công thức và thuật toán đại số thuần túy mà bỏ quên đi ý tưởng hình học đằng sau đó. Đồ án sử dụng thư viện Manim để chuyển đổi các định nghĩa trừu tượng sang các thực thể hình học, giúp tăng sự trực quan của người xem thông qua các phép biến đổi trong không gian.
+    \item \textbf{Giải quyết giới hạn của phương pháp truyền thống}: Nhằm làm rõ tính ưu việt của SVD so với phương pháp chéo hóa thông thường. Việc trực quan hóa giúp minh chứng rằng SVD là công cụ tổng quát hơn, giải quyết được nhiều trường hợp hơn mà không bị ràng buộc bởi tính chất, đặc trưng của các ma trận vuông hoặc hệ vector riêng.
+    \item \textbf{Kết nối lý thuyết với các bài toán thực tiễn hiện đại}: SVD không chỉ là khái niệm lý thuyết mà còn là nhân tố cốt lõi trong các công nghệ đột phá như nén dữ liệu, giảm chiều dữ liệu (PCA) và xử lý ngôn ngữ tự nhiên (LSA). Đồ án nhằm xây dựng một cái nhìn toàn diện, giúp người học hiểu rõ tại sao các phép hình học cơ bản lại ứng dụng trong các hệ thống AI và phân tích dữ liệu lớn hiện nay.
+\end{itemize}
+
+\subsection{Quy trình xây dựng video}
+
+\subsubsection{Kịch bản video}
+
+Nội dung video được xây dựng theo hướng đi từ cụ thể đến trừu tượng. Mở đầu bằng việc so sánh những sự hạn chế đối với phương pháp chéo hóa thông thường và tổng quát hóa sang SVD. Sau đó phân tích ý nghĩa hình học của SVD thông qua việc mô hình hóa các công thức toán học thành các đối tượng hình học trong không gian. Cuối cùng, liệt kê ra các ứng dụng của SVD trong thực tiễn nhằm nhấn mạnh tầm quan trọng của nó.
+
+Ngoài ra, nội dung thuyết mình còn được chuẩn hóa và ánh xạ trực tiếp sang bảng điều phối (\textbf{cue sheet}). Tài liệu trên đóng vai trò như trục thời gian tham chiếu, giúp đồng bộ chính xác các hàm xuất hiện trong mã nguồn.
+
+\subsubsection{Mã nguồn}
+
+Đồ án sử dụng thư viện \textbf{Manim} để lập trình các thực thể toán học. Các quy tắc diễn hoạt (\textbf{animation rules}) được thiết lập để đảm bảo tính nhất quán về thẩm mỹ (màu sắc, tốc độ chuyển động, độ dày nét vẽ...) xuyên suốt toàn bộ video.
+
+\subsubsection{Thuyết minh}
+
+Phần âm thanh được thu âm dựa trên kịch bản đã điều chỉnh, chú trọng vào việc điều phối nhịp độ trùng khớp với các chuyển động hoạt ảnh trên màn hình, giúp người xem dễ dàng theo dõi các lập luận logic toán học.
+
+\subsubsection{Chỉnh sửa video}
+
+Sử dụng các kỹ thuật cắt ghép và hiệu ứng chuyển cảnh để nối các scene lại với nhau trong các phân đoạn mô phỏng. Giai đoạn này tập trung làm nổi bật các mối quan hệ trọng yếu (như sự tương quan giữa các giá trị đơn lẻ và độ dài bán trục ellipse)
+
+\subsection{Phân tích kỹ thuật chuyên sâu}
+
+\subsubsection{So sánh vector riêng và vector suy biến phải}
+
+Một trong những điều gây nhầm lẫn là sự khác biệt giữa vector riêng (eigenvectors) và vector suy biến phải (right singular vectors - cột của $V$). Trong quá trình trực quan hóa, nhóm đã hiển thị đồng thời cả \textbf{các vector riêng của $A$} và \textbf{các vector $V$ của SVD}.
+
+Sau khi áp dụng các phép biến đổi tuyến tính lên $A$:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Vector riêng}:
+    \begin{itemize}[label=\ding{111}, leftmargin=1.5cm]
+        \item Không thay đổi phương.
+        \item Chỉ bị co giãn theo hệ số $\lambda$ (là các trị riêng)     
+    \end{itemize}
+
+    \item \textbf{Vector suy biến}:
+    \begin{itemize}[label=\ding{111}, leftmargin=1.5cm]
+        \item Bị thay đổi phương sau khi biến đổi.
+        \item Tuy nhiên luôn duy trì tính \textbf{trực giao}.    
+    \end{itemize}
+\end{itemize}
+
+Điều này nhấn mạnh sự khác biệt quan trọng: Vector riêng đặc trưng cho cấu trúc nội tại của A, trong khi vector suy biến mô tả cách A biến đổi toàn bộ không gian theo một hệ trục trực chuẩn tối ưu.
+
+\subsubsection{Trực quan hóa Jacobi hai phía}
+
+Phần này minh họa trực tiếp cơ chế của thuật toán Jacobi hai phía (Two-sided Jacobi) thông qua các bước hình học.
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Bước 1}: Hiển thị các vector cơ sở chuẩn $(e_1, e_2)$ và các vector $V$ (khởi đầu là trực chuẩn)
+    \item \textbf{Bước 2}: Sau khi áp dụng phép biến đổi $A$
+    \begin{itemize}[label=\ding{111}, leftmargin=1.5cm]
+        \item Các vector cơ sở bị biến dạng "tùy ý" (không còn trực giao so với ban đầu)
+        \item Các vector $V$ vẫn duy trì được sự trực giao, dần xây dựng hệ thống trục trực chuẩn ổn định.    
+    \end{itemize}
+    \item \textbf{Bước 3}: Áp dụng thêm phép biến đổi $A^T$, hệ thu được là $A^TA$. Khi đó:
+    \begin{itemize}[label=\ding{111}, leftmargin=1.5cm]
+        \item Các vector cơ sở trở nên trực giao và có thể bị đảo chiều so với $V$.
+        \item Độ dài bị co giãn theo: $\lambda = \sigma^2$.  
+    \end{itemize}
+    \item \textbf{Bước 4}: Căn chỉnh
+    \begin{itemize}[label=\ding{111}, leftmargin=1.5cm]
+        \item Vector cơ sở đã trực giao nhưng chưa "thẳng hàng" so với hệ trục chính.
+        \item Cuối cùng, thực hiện một phép xoay để thu được hệ trục trùng với vector $V$. 
+    \end{itemize}
+\end{itemize}
+
