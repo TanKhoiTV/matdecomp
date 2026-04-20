@@ -61,10 +61,15 @@ matdecomp/
 └── report/
     ├── report.tex              # LaTeX source
     ├── report.pdf              # Compiled report
-    └── sections/
-        ├── part1.tex
-        ├── part2.tex
-        └── conclusion.tex
+    ├── reportDoCS2025.cls      # Custom LaTeX class for report styling and layout
+    ├── latexmkrc               # Build configuration file for automated LaTeX compilation
+    ├── logos
+    └── chapters/
+        ├── chapter_01.tex
+        ├── chapter_02.tex
+        ├── chapter_03.tex
+        ├── conclusion.tex
+        └── biblio.tex
 ```
 
 ---
