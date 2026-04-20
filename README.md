@@ -1,6 +1,6 @@
 # matdecomp
 
-From-scratch Python implementations of Gaussian elimination, QR decomposition, and matrix diagonalization — with a narrated Manim video and performance analysis.
+From-scratch Python implementations of Gaussian elimination, SVD decomposition, and matrix diagonalization — with a narrated Manim video and performance analysis.
 
 ---
 
@@ -11,7 +11,7 @@ From-scratch Python implementations of Gaussian elimination, QR decomposition, a
 - [Setup](#setup)
 - [Parts](#parts)
   - [Part 1 — Gaussian Elimination](#part-1--gaussian-elimination)
-  - [Part 2 — QR Decomposition + Manim Video](#part-2--qr-decomposition--manim-video)
+  - [Part 2 — SVD Decomposition + Manim Video](#part-2--svd-decomposition--manim-video)
   - [Part 3 — Performance Analysis](#part-3--performance-analysis-bonus)
 - [Running the Notebooks](#running-the-notebooks)
 - [Team](#team)
@@ -26,7 +26,7 @@ This project covers three core areas of numerical linear algebra, implemented fr
 | Part | Topic | Status |
 |------|-------|--------|
 | 1 | Gaussian elimination, determinant, inverse, rank/basis | Mandatory |
-| 2 | QR decomposition (Modified Gram-Schmidt), diagonalization, Manim video with narration | Mandatory |
+| 2 | Singular Value Decomposition (SVD), diagonalization, Manim video with narration | Mandatory |
 | 3 | Iterative solvers, benchmarks, stability analysis | Bonus |
 
 ---
@@ -47,7 +47,7 @@ matdecomp/
 │   ├── rank_basis.py           # rank_and_basis
 │   └── part1_demo.ipynb        # Walkthrough notebook
 ├── part2/
-│   ├── decomposition.py        # qr_decompose (Modified Gram-Schmidt)
+│   ├── decomposition.py        # svd_decompose (SVD implementation)
 │   ├── diagonalization.py      # diagonalize (A = PDP⁻¹)
 │   ├── theme.py                # Shared Manim color/font config
 │   ├── manim_scene.py          # All 3 Manim scenes
@@ -61,10 +61,15 @@ matdecomp/
 └── report/
     ├── report.tex              # LaTeX source
     ├── report.pdf              # Compiled report
-    └── sections/
-        ├── part1.tex
-        ├── part2.tex
-        └── conclusion.tex
+    ├── reportDoCS2025.cls      # Custom LaTeX class for report styling and layout
+    ├── latexmkrc               # Build configuration file for automated LaTeX compilation
+    ├── logos
+    └── chapters/
+        ├── chapter_01.tex
+        ├── chapter_02.tex
+        ├── chapter_03.tex
+        ├── conclusion.tex
+        └── biblio.tex
 ```
 
 ---
@@ -121,11 +126,11 @@ Implementations in `part1/`:
 
 Each function has at least 5 test cases including edge cases. See `part1/part1_demo.ipynb` for a full walkthrough.
 
-### Part 2 — QR Decomposition + Manim Video
+### Part 2 — SVD Decomposition + Manim Video
 
 **Python implementation** in `part2/decomposition.py` and `part2/diagonalization.py`:
 
-- `qr_decompose(A)` — Modified Gram-Schmidt. Returns Q (orthonormal columns) and R (upper triangular, positive diagonal).
+- `svd_decompose(A)` — Computes the Singular Value Decomposition A = UΣV^T.
 - `diagonalize(A)` — Returns P, D, P_inv satisfying A = PDP⁻¹.
 
 **Manim video** (`part2/demo_video.mp4`):
@@ -134,9 +139,9 @@ The video is a narrated educational animation in the style of a math explainer, 
 
 | Scene | Content |
 |-------|---------|
-| 1 | Introduction to QR — Gram-Schmidt orthogonalization animated step by step |
+| 1 | Introduction to SVD — visualizing matrix transformations and singular values |
 | 2 | Diagonalization — eigenvalues, eigenvectors, A = PDP⁻¹ |
-| 3 | Application — least squares fitting using QR |
+| 3 | Application — data compression or image processing using SVD |
 
 Recording gear: Audio-Technica AT2020 USB + ATH-M40x. Narration script at `part2/narration_script.md`.
 
@@ -179,7 +184,7 @@ The `-qh` flag renders at 1080p. Output goes to `media/videos/`. The pre-rendere
 | Lê Thành Đạt | Scrum Master | Sprint ceremonies, retros, report Prism → Git commits, diagonalization skeleton |
 | Cao Việt Cường | Developer A | `gaussian_eliminate`, `back_substitution`, `rank_and_basis` |
 | Nguyễn Phú Đạt | Developer B | `determinant`, `inverse`, benchmark harness |
-| Trần Văn Tấn Khôi | Developer C | QR decomposition (full implementation) |
+| Trần Văn Tấn Khôi | Developer C | SVD decomposition (full implementation) |
 | Mai Phan Nhật Hoàng | Developer D | Diagonalization (complete), report sections |
 | Lê Thành Đạt | Developer E | All Manim scenes, narration script, audio recording and sync, video export |
 
@@ -231,15 +236,15 @@ Every story has a corresponding GitHub Issue. Before starting work:
 
 ## Tổng Quan (Tiếng Việt)
 
-Đây là đồ án cài đặt bằng Python các kỹ thuật đại số tuyến tính số, bao gồm phép khử Gauss, phân rã QR, và chéo hóa ma trận, kèm video Manim có thuyết minh và phân tích hiệu năng.
+Đây là đồ án cài đặt bằng Python các kỹ thuật đại số tuyến tính số, bao gồm phép khử Gauss, phân rã giá trị suy biến (SVD), và chéo hóa ma trận, kèm video Manim có thuyết minh và phân tích hiệu năng.
 
 ### Các Phần
 
 **Phần 1 — Phép Khử Gauss và Ứng Dụng**
 Cài đặt: `gaussian_eliminate` (có partial pivoting), `back_substitution`, `determinant`, `inverse` (Gauss-Jordan), `rank_and_basis`. Không sử dụng `numpy.linalg` hoặc `scipy.linalg` trong phần cài đặt — chỉ dùng để kiểm chứng.
 
-**Phần 2 — Phân Rã QR + Video Manim**
-Phân rã QR bằng Modified Gram-Schmidt. Chéo hóa ma trận A = PDP⁻¹. Video Manim có thuyết minh (≥2 phút, ≥1080p) với theme tùy chỉnh — nền sáng, font IBM Plex Sans, màu teal. Thiết bị thu âm: AT2020 USB + ATH-M40x.
+**Phần 2 — Phân Rã SVD + Video Manim**
+Phân rã giá trị suy biến (SVD) A = UΣV^T. Chéo hóa ma trận A = PDP⁻¹. Video Manim có thuyết minh giải thích trực quan về SVD (≥2 phút, ≥1080p) với theme tùy chỉnh — nền sáng, font IBM Plex Sans, màu teal. Thiết bị thu âm: AT2020 USB + ATH-M40x.
 
 **Phần 3 — Phân Tích Hiệu Năng**
 So sánh các phương pháp giải Ax = b: Gauss, QR, Gauss-Seidel. Thực nghiệm với n ∈ {50, 100, 200, 500, 1000}. Đồ thị log-log, phân tích ma trận Hilbert. Chỉ thực hiện nếu có đủ thời gian sau Phần 1 và 2.
