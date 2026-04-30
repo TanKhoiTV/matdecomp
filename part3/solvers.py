@@ -1,82 +1,50 @@
-import warnings
 from typing import Sequence, List
-
-
-def is_diagonally_dominant(A: Sequence[Sequence[float]]) -> bool:
-    n: int = len(A)
-    if n == 0:
-        return False
-
-    for row in A:
-        if len(row) != n:
-            return False
-
-    for i in range(n):
-        sum_other: float = sum(abs(A[i][j]) for j in range(n) if j != i)
-        if abs(A[i][i]) < sum_other:
-            return False
-
-    return True
-
-
-def residual(
-    A: Sequence[Sequence[float]],
-    x: Sequence[float],
-    b: Sequence[float]
-) -> float:
-    n: int = len(x)
-    return max(
-        abs(sum(A[i][j] * x[j] for j in range(n)) - b[i])
-        for i in range(n)
-    )
+import numpy as np
+import warnings
 
 
 def gauss_seidel(
     A: Sequence[Sequence[float]],
     b: Sequence[float],
-    tolerance: float = 1e-6,
-    max_iter: int = 1000
+    tolerance: float = 1e-8,
+    max_iter: int = 100000,
 ) -> List[float]:
-    n: int = len(A)
 
-    if n == 0:
-        return []
+    A_np = np.array(A, dtype=float)
+    b_np = np.array(b, dtype=float)
 
-    if len(b) != n:
+    n = A_np.shape[0]
+
+    if A_np.shape[0] != A_np.shape[1]:
+        raise ValueError("A phải là ma trận vuông.")
+    if b_np.shape[0] != n:
         raise ValueError("Kích thước A và b không khớp.")
 
-    for row in A:
-        if len(row) != n:
-            raise ValueError("Ma trận A phải vuông.")
+    if np.any(np.diag(A_np) == 0):
+        raise ValueError("Có phần tử trên đường chéo bằng 0.")
 
-    for i in range(n):
-        if A[i][i] == 0:
-            raise ValueError(f"A[{i}][{i}] = 0 → không thể chia.")
-
-    if not is_diagonally_dominant(A):
+    # check chéo trội
+    diag = np.abs(np.diag(A_np))
+    off_diag_sum = np.sum(np.abs(A_np), axis=1) - diag
+    if not np.all(diag >= off_diag_sum):
         warnings.warn("Ma trận không chéo trội. Có thể không hội tụ.", stacklevel=2)
 
-    x: List[float] = [0.0] * n
+    x = np.zeros(n)
 
     for _ in range(max_iter):
-        err: float = 0.0
+        x_old = x.copy()
 
         for i in range(n):
-            old_xi: float = x[i]
+            s1 = np.dot(A_np[i, :i], x[:i])
+            s2 = np.dot(A_np[i, i + 1 :], x_old[i + 1 :])
+            x[i] = (b_np[i] - s1 - s2) / A_np[i, i]
 
-            sum1: float = sum(A[i][j] * x[j] for j in range(i))
-            sum2: float = sum(A[i][j] * x[j] for j in range(i + 1, n))
+        iter_error = np.linalg.norm(x - x_old, ord=2)
 
-            x[i] = (b[i] - sum1 - sum2) / A[i][i]
-
-            diff: float = abs(x[i] - old_xi)
-            if diff > err:
-                err = diff
-
-        if err < tolerance:
-            res: float = residual(A, x, b)
-            if res < tolerance:
-                return x
+        if iter_error < tolerance:
+            residual = np.linalg.norm(A_np @ x - b_np, ord=2)
+            if residual < tolerance:
+                return x.tolist()
 
     warnings.warn(f"Không hội tụ sau {max_iter} vòng lặp.", stacklevel=2)
-    return x
+    return x.tolist()
