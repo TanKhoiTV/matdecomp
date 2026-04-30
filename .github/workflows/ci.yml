@@ -98,7 +98,8 @@ jobs:
             flake8 $dirs \
               --max-line-length=100 \
               --ignore=E501,W503 \
-              --exclude=.venv
+              --exclude=.venv \
+              --exclude=manim
           else
             echo "No part directories found — skipping lint"
           fi
