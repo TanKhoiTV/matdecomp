@@ -2,6 +2,100 @@
 
 \newpage
 
-\section{<tên mục 1>}
+\section{Cơ sở lý thuyết}
 
-\section{<tên mục 2>}
+Phân tích hiệu năng của các thuật toán giải hệ $Ax = b$ được xây dựng trên sự tương tác giữa đặc tính cấu trúc của ma trận và cơ chế tính toán của từng phương pháp.
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Ma trận Đối xứng Xác định Dương (SPD)}: Có các trị riêng thực dương ($\lambda_i > 0$). Các hệ này thường có số điều kiện ($\kappa$) thấp, giúp kiểm soát tốt sự lan truyền sai số và đảm bảo tính hội tụ cho các phương pháp lặp.
+    \item \textbf{Ma trận Hilbert}: Là ví dụ điển hình của hệ ma trận xấu (ill-conditioned). Các trị riêng phân rã về 0 theo hàm mũ khiến định thức tiệm cận 0.
+    \item \textbf{Số điều kiện ($\kappa(A)$)}: Thước đo độ nhạy hệ thống (với SPD, $\kappa = \lambda_{max}/\lambda_{min}$). Theo định lý nhiễu loạn, sai số nghiệm tỷ lệ thuận với $\kappa$. Trên hệ Hilbert, $\kappa$ bùng nổ vượt quá giới hạn biểu diễn của số thực 64-bit, dẫn đến thất bại trong tính toán.
+\end{itemize}
+
+Các bộ giải được chia thành hai trường phái, đối mặt với sự suy biến theo những cách khác biệt:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Nhóm Phương pháp Trực tiếp (Direct Methods)}
+    Đặc trưng bởi tính tất định, giải bài toán trong số bước $\mathcal{O}(N^3)$ hữu hạn, nhưng phải chịu sai số số học:
+    \begin{itemize}[label=\ding{111}, leftmargin=1.5cm]
+        \item Khử Gauss ($A=LU$): Tối ưu hóa tốc độ phần cứng cực tốt nhưng sử dụng các biến đổi không trực giao. Rất dễ bị phá hủy bởi hiện tượng sụp đổ phần tử trục (pivot collapse) và khuếch đại nhiễu trên ma trận xấu.
+        \item Phân rã SVD ($A=U\Sigma V^T$): Tiêu chuẩn vàng về độ ổn định ngược. Các phép biến đổi trực giao đẳng cự ($\kappa=1$) giúp SVD không bao giờ tự sinh/khuếch đại rác số học. Điểm yếu là chi phí tính toán siêu việt khổng lồ và dễ mất toàn bộ tính ổn định nếu lập trình ngây thơ qua bước nhân hiệp phương sai $A^T A$.
+    \end{itemize}
+    \item \textbf{Phương pháp Lặp (Iterative Methods) Gauss-Seidel}: Khả năng hội tụ bị quyết định tuyệt đối bởi bán kính phổ của ma trận lặp ($\rho < 1$). Trên hệ SPD lý tưởng, thuật toán tạo ra cơ chế nén sai số chủ động. Tuy nhiên, trên hệ suy biến như Hilbert, do $\rho \to 1$, động năng tiệm cận bị triệt tiêu hoàn toàn, ép hệ thống rơi vào trạng thái đình trệ giải tích (stagnation) vĩnh viễn.
+\end{itemize}
+
+\section{Phân tích hiệu năng}
+
+Qua thực nghiệm trên hai lớp bài toán đại diện (Ma trận xác định dương SPD và ma trận Hilbert), hiệu năng của ba phương pháp giải hệ tuyến tính thể hiện rõ sự đánh đổi giữa tốc độ tính toán và độ ổn định số:
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/chapter_03/time-execute.png}
+    \caption{Thời gian thực thi}
+\end{figure}
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Khử Gauss}: Đạt thời gian thực thi thấp nhờ cấu trúc tính toán tối ưu, nhưng kém ổn định trên các bài toán điều kiện kém. Sai số làm tròn tích lũy có thể gây mất ổn định nghiêm trọng, đặc biệt khi các phần tử trục nhỏ.
+    \item \textbf{SVD}: Có độ ổn định số cao nhờ các phép biến đổi trực giao, phù hợp với các hệ kém điều kiện. Tuy nhiên, chi phí tính toán lớn và độ nhạy với cách cài đặt (ví dụ thông qua $A^T A$) có thể làm suy giảm hiệu quả trong thực tế.
+    \item \textbf{Gauss-Seidel}: Hiệu quả trên các hệ hội tụ tốt (như SPD), nhưng phụ thuộc mạnh vào bán kính phổ của ma trận lặp. Khi hệ gần suy biến, tốc độ hội tụ giảm đáng kể và tiêu chuẩn dừng có thể dẫn đến nghiệm không chính xác.
+\end{itemize}
+
+Kết quả cho thấy không tồn tại phương pháp tối ưu cho mọi bài toán. Các phương pháp trực tiếp chịu ảnh hưởng của sai số làm tròn, trong khi các phương pháp lặp phụ thuộc vào đặc tính phổ của ma trận. Do đó, việc lựa chọn thuật toán cần dựa trên sự cân nhắc giữa chi phí tính toán, độ ổn định số và số điều kiện $\kappa(A)$ của bài toán.
+
+\section{Phân tích độ ổn định} 
+
+\subsection{Hệ ma trận SPD (well-conditioned)}
+
+Để đánh giá đặc tính ổn định số, các phương pháp được khảo sát trên lớp bài toán SPD - một môi trường thuận lợi với số điều kiện thấp và đảm bảo hội tụ. Trong bối cảnh này, sai số chủ yếu phản ánh ảnh hưởng của làm tròn số và cấu trúc thuật toán, thay vì bất ổn nội tại của bài toán.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/chapter_03/spd.png}
+    \caption{Sai số trên hệ SPD}
+\end{figure}
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Khử Gauss}: Hoạt động ổn định trên hệ SPD nhờ tránh được các vấn đề về phần tử trục. Sai số đạt gần giới hạn của độ chính xác máy (machine epsilon), cho thấy hiệu quả cao cả về độ chính xác lẫn chi phí tính toán.
+    \item \textbf{SVD}: Đảm bảo ổn định số nhờ các phép biến đổi trực giao, tuy nhiên sai số thực nghiệm cao hơn so với Khử Gauss. Nguyên nhân chủ yếu đến từ chi phí tính toán lớn và khả năng suy hao thông tin khi triển khai thông qua các phép biến đổi trung gian như $A^T A$.
+    \item \textbf{Gauss-Seidel}: Hội tụ tốt trên hệ SPD, nhưng độ chính xác cuối cùng phụ thuộc vào tiêu chuẩn dừng. Phương pháp thường dừng tại mức sai số phù hợp với ngưỡng dung sai đặt trước, thay vì đạt đến giới hạn chính xác của máy.
+\end{itemize}
+
+Kết quả cho thấy trong môi trường điều kiện tốt, sự khác biệt về độ ổn định giữa các phương pháp không còn mang tính quyết định. Thay vào đó, hiệu năng phụ thuộc nhiều hơn vào đặc điểm tính toán và tiêu chí dừng, trong đó Khử Gauss đạt độ chính xác cao nhất, còn Gauss-Seidel phản ánh sự cân bằng giữa độ chính xác và chi phí tính toán.
+
+\subsection{Hệ ma trận Hillbert (ill-conditioned)}
+
+\subsubsection{Phương pháp Trực tiếp (Direct Methods)}
+
+Các phương pháp trực tiếp, tiêu biểu là Khử Gauss và SVD, dựa trên việc phân rã ma trận để tìm nghiệm chính xác trong số bước hữu hạn. Tuy nhiên, trên các bài toán điều kiện kém như ma trận Hilbert, hiệu năng của chúng bị chi phối mạnh bởi sai số làm tròn và số điều kiện lớn.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/chapter_03/hillbert.png}
+    \caption{Sai số trên hệ Hillbert}
+\end{figure}
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Khử Gauss}: Dễ bị mất ổn định số trên ma trận Hilbert do các phần tử trục rất nhỏ. Sai số làm tròn bị khuếch đại qua quá trình khử, dẫn đến nghiệm và phần dư sai lệch đáng kể, ngay cả khi áp dụng các kỹ thuật pivoting cơ bản.
+    \item \textbf{SVD}: Về lý thuyết có độ ổn định cao nhờ các phép biến đổi trực giao, ít nhạy cảm với điều kiện kém. Tuy nhiên, trong thực tế, hiệu quả phụ thuộc vào cách triển khai. Việc tính toán gián tiếp thông qua $A^T A$ có thể làm trầm trọng hóa vấn đề điều kiện số và gây mất mát thông tin, dẫn đến sai số đáng kể hoặc hội tụ không chính xác.
+\end{itemize}
+
+\newpage
+
+\subsubsection{Phương pháp Lặp (Iterative Methods)}
+
+\textbf{Gauss-Seidel}: Trên hệ SPD, phương pháp hội tụ hiệu quả nhờ bán kính phổ nhỏ hơn 1, với sai số giảm dần theo từng bước lặp. Tiêu chuẩn dừng dựa trên chuẩn $L_2$ cho phép kiểm soát độ chính xác theo ngưỡng dung sai đã thiết lập.
+
+Tuy nhiên, trên hệ ma trận Hilbert, khi bán kính phổ của ma trận lặp tiệm cận 1, tốc độ hội tụ suy giảm đáng kể hoặc gần như đình trệ. Trong trường hợp này, số vòng lặp lớn kết hợp với sai số làm tròn có thể dẫn đến việc tiêu chuẩn dừng bị thỏa mãn sớm, khiến thuật toán trả về nghiệm không chính xác.
+
+Kết quả cho thấy hiệu quả của Gauss-Seidel phụ thuộc mạnh vào đặc tính phổ của ma trận. Với các bài toán kém điều kiện, phương pháp này không đảm bảo hội tụ nhanh và có thể không đạt được độ chính xác mong muốn trong giới hạn số vòng lặp.
+
+\section{Kết luận}
+
+Thông qua thực nghiệm trên hai lớp bài toán đại diện (hệ SPD và ma trận Hilbert), có thể khẳng định rằng độ ổn định của nghiệm không chỉ phụ thuộc vào bản thân thuật toán mà bị chi phối mạnh bởi số điều kiện $\kappa(A)$ của ma trận.
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Hệ SPD (well-conditioned)}: Với số điều kiện nhỏ, sai số làm tròn được kiểm soát hiệu quả, cho phép các phương pháp phát huy tối đa đặc tính của mình. Khử Gauss đạt độ chính xác gần giới hạn máy, SVD đảm bảo ổn định số, trong khi Gauss-Seidel hội tụ nhanh đến ngưỡng dung sai đặt trước.
+    \item \textbf{Hệ Hilbert (ill-conditioned)}: Số điều kiện lớn dẫn đến khuếch đại sai số nghiêm trọng, làm suy giảm hiệu năng của tất cả các phương pháp. Khử Gauss trở nên mất ổn định, SVD phụ thuộc mạnh vào cách triển khai, và Gauss-Seidel gặp khó khăn trong hội tụ hoặc cho nghiệm kém chính xác.
+\end{itemize}
+
+Kết quả cho thấy không tồn tại phương pháp giải tối ưu cho mọi bài toán. Việc lựa chọn thuật toán cần dựa trên sự cân nhắc giữa độ ổn định số, chi phí tính toán và đặc tính điều kiện của ma trận. Trong đó, số điều kiện $\kappa(A)$ đóng vai trò quyết định trong việc đánh giá độ tin cậy của nghiệm thu được.

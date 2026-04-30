@@ -2,6 +2,233 @@
 
 \newpage
 
-\section{<tên mục 1>}
+\section{Cơ sở lý thuyết}
 
-\section{<tên mục 2>}
+\subsection{Dạng REF và RREF}
+
+Cho ma trận $A \in \mathbb{R}^{m \times n}$. Thông qua các phép biến đổi dòng sơ cấp, ta có thể đưa ma trận về dạng bậc thang dòng (REF) hoặc dạng bậc thang dòng rút gọn (RREF).
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{REF (Row Echelon Form)}:
+    \begin{itemize}[label=\ding{111}, leftmargin=1.5cm]
+        \item Các dòng toàn 0 nằm ở dưới.
+        \item Phần tử dẫn đầu (pivot) của mỗi dòng nằm của bên phải pivot của dòng trên.
+    \end{itemize}
+    \[
+        \scalebox{1.0}{
+        $
+        \begin{bmatrix}
+            a & b & c \\
+            0 & d & e \\
+            0 & 0 & f
+        \end{bmatrix}
+        $
+        }
+    \]
+
+    \item \textbf{RREF (Reduced Row Echelon Form)}:
+    \begin{itemize}[label=\ding{111}, leftmargin=1.5cm]
+        \item Thỏa mãn dạng ma trận dạng bậc thang dòng.
+        \item Mỗi phần tử pivot đều bằng 1.
+        \item Các phần tử khác trong cột chứa pivot đều bằng 0.
+    \end{itemize}
+    \[
+        \scalebox{1.0}{
+        $
+        \begin{bmatrix}
+            1 & 0 & 2 & 0 \\
+            0 & 1 & 3 & 0 \\
+            0 & 0 & 0 & 1
+        \end{bmatrix}
+        $
+        }
+    \]
+\end{itemize}
+
+REF thường được dùng trong phép khử Gauss, trong khi RREF được dùng trong Gauss-Jordan để tìm nghiệm tổng quát và ma trận nghịch đảo.
+
+\subsection{Khử Gauss có chọn phần tử chốt}
+
+Trong quá trình tính toán, việc chọn pivot nhỏ có thể gây sai số lớn. Do đó, tại bước $k$, ta chọn dòng $p$ sao cho:
+
+\begin{equation}
+    |a_{pk}^{(k)}| = \max_{k \leq i \leq n}|a_{ik}^{(k)}|
+\end{equation}
+
+\noindent Sau đó hoán đổi dòng $k$ và $p$.
+
+Kỹ thuật này giúp giảm sai số khi tính toán, tăng tính ổn định số học và tránh việc phải chia cho số rất nhỏ.
+
+\subsection{Tính định thức bằng khử Gauss}
+
+Sau khi đưa ma trận về dạng tam giác trên $U$, định thức của $U$ được tính bằng cách lấy tích các phần tử trên đường chéo chính.
+
+\begin{equation}
+    det(A) = (-1)^s \prod_{i = 1}^{n} u_{ii}
+\end{equation}
+
+Trong đó:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item $s$: Số lần hoán đổi dòng.
+    \item $u_{ii}$: Phần tử trên đường chéo của $U$.
+\end{itemize}
+
+\subsection{Ma trận nghịch đảo (Gauss-Jordan)}
+
+Một ma trận $A \in \mathbb{R}^{n \times n}$ khả nghịch khi và chỉ khi:
+\[
+\det(A) \neq 0.
+\]
+
+Để tìm $A^{-1}$, ta xét ma trận ghép:
+\[
+[A \mid I_n]
+\]
+
+Sau đó áp dụng khử Gauss-Jordan để đưa về dạng:
+\[
+[I_n \mid A^{-1}]
+\]
+
+Quá trình này tương đương với việc tìm ma trận nghịch đảo thông qua các phép biến đổi dòng.
+
+\subsection{Hạng ma trận và các không gian con}
+
+\textbf{Định nghĩa.} Hạng của ma trận $A$, ký hiệu $\mathrm{rank}(A)$, là số pivot trong dạng REF của $A$.
+
+\medskip
+
+Từ dạng RREF, ta xác định được các không gian quan trọng:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item \textbf{Không gian cột} $C(A)$: sinh bởi các cột pivot của ma trận gốc
+    \item \textbf{Không gian dòng} $R(A)$: sinh bởi các dòng khác 0 của RREF
+    \item \textbf{Không gian nghiệm} $N(A)$: tập nghiệm của hệ thuần nhất $Ax = 0$
+\end{itemize}
+
+Các không gian này đóng vai trò quan trọng trong việc hiểu cấu trúc tuyến tính của ma trận và hệ phương trình.
+
+\section{Kết quả thực nghiệm và so sánh với Numpy}
+
+Để kiểm chứng tính đúng đắn của các thuật toán đã cài đặt, nhóm sử dụng Jupyter Notebook \texttt{part1\_demo.ipynb} nhằm minh họa quá trình thực thi và so sánh kết quả với thư viện NumPy.
+
+\subsection{Mục tiêu}
+
+Notebook được xây dựng với các mục tiêu chính sau:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item Minh họa từng bước của phép khử Gauss với partial pivoting
+    \item Kiểm tra nghiệm của hệ phương trình tuyến tính $Ax = b$
+    \item Tính định thức và so sánh với \texttt{numpy.linalg.det}
+    \item Tính ma trận nghịch đảo và kiểm chứng $AA^{-1} \approx I$
+    \item Xác định hạng ma trận và các không gian con
+\end{itemize}
+
+\subsection{Các trường hợp kiểm thử}
+
+Nhóm tiến hành kiểm thử trên nhiều loại ma trận khác nhau:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item Ma trận vuông khả nghịch (det $\neq 0$)
+    \item Ma trận suy biến (det = 0)
+    \item Ma trận có pivot nhỏ (để kiểm tra partial pivoting)
+    \item Ma trận ngẫu nhiên kích thước nhỏ và trung bình
+\end{itemize}
+
+Với mỗi ma trận $A$ và vector $b$, nhóm thực hiện:
+\begin{enumerate}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item Giải hệ $Ax = b$ bằng thuật toán tự cài đặt
+    \item So sánh nghiệm với kết quả từ NumPy
+    \item Tính định thức bằng hai phương pháp và so sánh sai số
+    \item Tính ma trận nghịch đảo và kiểm tra: $|AA^{-1} - I| \approx 0$
+    \item So sánh hạng ma trận với \texttt{numpy.linalg.matrix\_rank}
+\end{enumerate}
+
+\subsection{Đánh giá sai số}
+
+\subsubsection{Giải hệ phương trình}
+
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabular}{|c|p{7.5cm}|c|c|}
+        \hline
+        \rowcolor[rgb]{0.8, 0.9, 1.0}
+        \textbf{STT} & \textbf{Trường hợp kiểm thử} & \textbf{Trạng thái} & \textbf{Sai số} \\ \hline
+        
+        1 & Ma trận 3x3 thông thường & Đã kiểm chứng & $8.88\times10^{-16}$ \\ \hline
+        2 & Ma trận đơn vị 4x4 (kích thước lớn) & Đã kiểm chứng & $0.00\times10^{0}$ \\ \hline
+        3 & Ma trận số thực (float) & Đã kiểm chứng & $0.00\times10^{0}$ \\ \hline
+        4 & Ma trận chữ nhật (nhiều cột hơn hàng) & Đã kiểm chứng & $0.00\times10^{0}$ \\ \hline
+        5 & Ma trận suy biến / có hàng 0 & Đã kiểm chứng & $0.00\times10^{0}$ \\ \hline
+        6 & Ma trận có hàng trùng lặp & Đã kiểm chứng & $0.00\times10^{0}$ \\ \hline
+
+    \end{tabular}
+    \caption{Kết quả kiểm thử phương pháp Gauss}
+\end{table}
+
+\subsubsection{Tính toán định thức}
+
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabular}{|c|p{7.5cm}|c|c|}
+        \hline
+        \rowcolor[rgb]{0.8, 0.9, 1.0}
+        \textbf{STT} & \textbf{Trường hợp kiểm thử} & \textbf{Trạng thái} & \textbf{Định thức} \\ \hline
+        
+        1 & Ma trận đơn vị 3x3 & Đã kiểm chứng & $1.0000$ \\ \hline
+        2 & Ma trận tam giác trên & Đã kiểm chứng & $30.0000$ \\ \hline
+        3 & Ma trận suy biến (det = 0) & Đã kiểm chứng & $0.0000$ \\ \hline
+        4 & Ma trận kém điều kiện (kích thước nhỏ) & Đã kiểm chứng & $0.0001$ \\ \hline
+        5 & Ma trận ngẫu nhiên 3x3 & Đã kiểm chứng & $-306.0000$ \\ \hline
+        6 & Ma trận có phần tử âm & Đã kiểm chứng & $-2.0000$ \\ \hline
+
+    \end{tabular}
+    \caption{Kết quả kiểm thử tính định thức}
+\end{table}
+
+\newpage
+
+\subsubsection{Phân tích hệ số điều kiện}
+
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabular}{|c|p{3.5cm}|p{4cm}|c|}
+        \hline
+        \rowcolor[rgb]{0.8, 0.9, 1.0}
+        \textbf{Trường hợp} & \textbf{Vector b} & \textbf{Nghiệm x} & \textbf{Ghi chú} \\ \hline
+        
+        $b_1$ & $[2.0000,\; 2.0001]$ & \parbox[c]{4cm}{\centering $[0.9999999999977796,$ \\ $1.0000000000022204]$} & Nghiệm ổn định \\ \hline
+        
+        $b_2$ & $[2.0000,\; 2.0000]$ & $[0.0,\; 2.0]$ & Nghiệm thay đổi mạnh \\ \hline
+
+    \end{tabular}
+    \caption{Phân tích ảnh hưởng của hệ số điều kiện}
+\end{table}
+
+\subsubsection{Hạng và không gian cơ sở}
+
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabular}{|c|p{7.5cm}|c|c|}
+        \hline
+        \rowcolor[rgb]{0.8, 0.9, 1.0}
+        \textbf{STT} & \textbf{Trường hợp kiểm thử} & \textbf{Hạng} & \textbf{Trạng thái} \\ \hline
+        
+        1 & Ma trận hạng đầy đủ 3x3 & 3 & Đã kiểm chứng \\ \hline
+        2 & Ma trận hạng 1 (các hàng phụ thuộc) & 1 & Đã kiểm chứng \\ \hline
+        3 & Ma trận không 2x2 & 0 & Đã kiểm chứng \\ \hline
+        4 & Ma trận chữ nhật 3x4 & 2 & Đã kiểm chứng \\ \hline
+        5 & Ma trận cao 4x2 & 2 & Đã kiểm chứng \\ \hline
+
+    \end{tabular}
+    \caption{Kết quả kiểm thử hạng ma trận và không gian nghiệm}
+\end{table}
