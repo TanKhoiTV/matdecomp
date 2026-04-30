@@ -47,12 +47,23 @@ matdecomp/
 │   ├── rank_basis.py           # rank_and_basis
 │   └── part1_demo.ipynb        # Walkthrough notebook
 ├── part2/
-│   ├── decomposition.py        # svd_decompose (SVD implementation)
+│   ├── decomposition.py        # svd_decompose
 │   ├── diagonalization.py      # diagonalize (A = PDP⁻¹)
-│   ├── theme.py                # Shared Manim color/font config
-│   ├── manim_scene.py          # All 3 Manim scenes
-│   ├── narration_script.md     # Full narration script
-│   └── demo_video.mp4          # Exported video (≥1080p, ≥2 min)
+│   ├── manim/
+│   │   ├── img/                # Static image assets
+│   │   ├── svg/                # Vector assets
+│   │   ├── scene_intro.py      # Intro scene logic
+│   │   ├── scene_svd.py        # Singular Value Decomposition logic
+│   │   ├── scene_compare.py    # Comparison logic
+│   │   ├── scene_app.py        # Application demonstration logic
+│   │   ├── theme.py            # Shared Manim color/font config
+│   │   ├── manim.cfg           # Local Manim config
+│   │   └── demo_video.mp4      # Exported video
+│   └── manim-prod-assets/
+│       ├── assets_attribution_list.md
+│       ├── narration_script.md
+│       ├── svd-animation-refs.md
+│       └── svd-animation-rules.md
 ├── part3/                      # Bonus — only present if activated
 │   ├── solvers.py              # Gauss-Seidel iterative solver
 │   ├── benchmark.py            # Benchmark harness
@@ -133,17 +144,18 @@ Each function has at least 5 test cases including edge cases. See `part1/part1_d
 - `svd_decompose(A)` — Computes the Singular Value Decomposition A = UΣV^T.
 - `diagonalize(A)` — Returns P, D, P_inv satisfying A = PDP⁻¹.
 
-**Manim video** (`part2/demo_video.mp4`):
+**Manim video** (`part2/manim/demo_video.mp4`):
 
 The video is a narrated educational animation in the style of a math explainer, with a custom light theme distinct from 3Blue1Brown defaults.
 
 | Scene | Content |
 |-------|---------|
-| 1 | Introduction to SVD — visualizing matrix transformations and singular values |
-| 2 | Diagonalization — eigenvalues, eigenvectors, A = PDP⁻¹ |
-| 3 | Application — data compression or image processing using SVD |
+| 1 | Diagonalization Introduction |
+| 2 | Singular Value Decomposition Overview |
+| 3 | Connections between diagonalization and SVD |
+| 4 | Application — data compression, image processing, PCA and LSA using SVD |
 
-Recording gear: Audio-Technica AT2020 USB + ATH-M40x. Narration script at `part2/narration_script.md`.
+Narration uses Google's Text-to-Speech service. Narration script at `part2/manim-prod-assets/narration_script.md`.
 
 ### Part 3 — Performance Analysis (Bonus)
 
@@ -166,13 +178,11 @@ All notebooks run top-to-bottom without manual intervention.
 ## Rendering the Manim video
 
 ```bash
-cd part2
-manim manim_scene.py QRDecompositionScene -qh
-manim manim_scene.py DiagonalizationScene -qh
-manim manim_scene.py LeastSquaresScene -qh
+cd part2/manim
+manim -q[quality: l-low, m-medium, h-high] [file name] [scene name] --disable_caching
 ```
 
-The `-qh` flag renders at 1080p. Output goes to `media/videos/`. The pre-rendered export with narration is at `part2/demo_video.mp4`.
+The `-qh` flag renders at 1080p. Output goes to `media/videos/`. The pre-rendered export with narration is at `part2/manim/demo_video.mp4`.
 
 ---
 
@@ -180,15 +190,13 @@ The `-qh` flag renders at 1080p. Output goes to `media/videos/`. The pre-rendere
 
 | Member | Role | Responsibilities |
 |--------|------|-----------------|
-| Trần Văn Tấn Khôi | Product Owner + Repo Owner | Backlog, GitHub Projects, `rank_and_basis`, `verify_solution`, `part1_demo.ipynb` |
-| Lê Thành Đạt | Scrum Master | Sprint ceremonies, retros, report Prism → Git commits, diagonalization skeleton |
-| Cao Việt Cường | Developer A | `gaussian_eliminate`, `back_substitution`, `rank_and_basis` |
-| Nguyễn Phú Đạt | Developer B | `determinant`, `inverse`, benchmark harness |
-| Trần Văn Tấn Khôi | Developer C | SVD decomposition (full implementation) |
-| Mai Phan Nhật Hoàng | Developer D | Diagonalization (complete), report sections |
-| Lê Thành Đạt | Developer E | All Manim scenes, narration script, audio recording and sync, video export |
-
-*Fill in names and student IDs before submission.*
+| Trần Văn Tấn Khôi | Product Owner + Repo Owner | Backlog, GitHub Projects, `verify_solution` |
+| Lê Thành Đạt | Scrum Master | Sprint ceremonies, retros, report Prism → Git commits|
+| Cao Việt Cường | Developer A | `gaussian_eliminate`, `back_substitution`, `rank_and_basis`, benchmark harness |
+| Nguyễn Phú Đạt | Developer B | `determinant`, `inverse`, `part1_demo.ipynb` |
+| Lê Thành Đạt | Developer C | SVD decomposition skeleton and full implementation |
+| Mai Phan Nhật Hoàng | Developer D | Diagonalization (stub and complete), report sections |
+| Trần Văn Tấn Khôi | Developer E | All Manim scenes, narration script, AI voiceover and sync, video export |
 
 ---
 
@@ -244,10 +252,10 @@ Every story has a corresponding GitHub Issue. Before starting work:
 Cài đặt: `gaussian_eliminate` (có partial pivoting), `back_substitution`, `determinant`, `inverse` (Gauss-Jordan), `rank_and_basis`. Không sử dụng `numpy.linalg` hoặc `scipy.linalg` trong phần cài đặt — chỉ dùng để kiểm chứng.
 
 **Phần 2 — Phân Rã SVD + Video Manim**
-Phân rã giá trị suy biến (SVD) A = UΣV^T. Chéo hóa ma trận A = PDP⁻¹. Video Manim có thuyết minh giải thích trực quan về SVD (≥2 phút, ≥1080p) với theme tùy chỉnh — nền sáng, font IBM Plex Sans, màu teal. Thiết bị thu âm: AT2020 USB + ATH-M40x.
+Phân rã giá trị suy biến (SVD) A = UΣV^T. Chéo hóa ma trận A = PDP⁻¹. Video Manim có thuyết minh giải thích trực quan về SVD (≥2 phút, ≥1080p) với theme tùy chỉnh — nền sáng, font IBM Plex Sans, màu teal.
 
 **Phần 3 — Phân Tích Hiệu Năng**
-So sánh các phương pháp giải Ax = b: Gauss, QR, Gauss-Seidel. Thực nghiệm với n ∈ {50, 100, 200, 500, 1000}. Đồ thị log-log, phân tích ma trận Hilbert. Chỉ thực hiện nếu có đủ thời gian sau Phần 1 và 2.
+So sánh các phương pháp giải Ax = b: Gauss, SVD, Gauss-Seidel. Thực nghiệm với n ∈ {50, 100, 200, 500, 1000}. Đồ thị log-log, phân tích ma trận Hilbert. Chỉ thực hiện nếu có đủ thời gian sau Phần 1 và 2.
 
 ### Cài Đặt
 
