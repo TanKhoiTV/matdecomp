@@ -159,7 +159,7 @@ Narration uses Google's Text-to-Speech service. Narration script at `part2/manim
 
 ### Part 3 — Performance Analysis (Bonus)
 
-Present only if activated during Sprint 3 planning. Compares Gaussian elimination, QR solver, and Gauss-Seidel across matrix sizes n ∈ {50, 100, 200, 500, 1000}. Includes log-log plots and stability analysis on Hilbert matrices vs random SPD matrices. See `part3/analysis.ipynb`.
+Present only if activated during Sprint 3 planning. Compares Gaussian elimination, SVD solver, and Gauss-Seidel across matrix sizes n ∈ {50, 100, 200, 500, 1000}. Includes log-log plots and stability analysis on Hilbert matrices vs random SPD matrices. See `part3/analysis.ipynb`.
 
 ---
 
