@@ -5,6 +5,8 @@ from manim_voiceover import VoiceoverScene
 from manim_voiceover.services.gtts import GTTSService
 from manim_voiceover.services.pyttsx3 import PyTTSX3Service
 from manim_voiceover.services.recorder import RecorderService
+from manim_voiceover.services.elevenlabs import ElevenLabsService
+
 
 # Palette
 BG = "#F5F4EF"  # warm off-white
@@ -15,7 +17,7 @@ MUTED = "#6B6B6B"  # gray for labels and annotations
 HIGHLIGHT = "#E8F4F1"  # very light teal for background fills
 
 
-VoiceService = RecorderService(silence_threshold=-40.0)
+VoiceService = GTTSService(lang="en", tld="com")
 
 
 class ProjectScene(Scene):
