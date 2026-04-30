@@ -2,6 +2,28 @@
 
 \newpage
 
-\section{<tên mục 1>}
+\section{Tóm tắt kết quả đạt được}
 
-\section{<tên mục 2>}
+Trong khuôn khổ đồ án này, nhóm đã nghiên cứu và triển khai các phương pháp cốt lõi trong đại số tuyến tính, tập trung vào hai hướng chính: \textbf{giải hệ phương trình tuyến tính bằng phép khử Gauss} và \textbf{phân rã ma trận sử dụng phương pháp phân rã giá trị suy biến SVD}.
+
+Ở phần 1, nhóm đã xây dựng thành công các thuật toán dựa trên phép khử Gauss, bao gồm giải hệ phương trình, tính định thức, tìm ma trận nghịch đảo, xác định hạng và không gian con. Việc áp dụng kỹ thuật \textbf{partial pivoting} giúp cải thiện độ ổn định số học. Kết quả thực nghiệm cho thấy các thuật toán được cài đặt có sai số rất nhỏ (xấp xỉ $10^{-6}$) khi so sánh với thư viện Numpy.
+
+Ở phần 2, nhóm đã tiếp cận một trong những thuật toán phân rã ma trận phổ biến nhất - SVD, đồng thời nhóm cũng đã tìm hiểu thêm một số thuật toán tìm trị riêng như Jacobi và QR. Không chỉ dừng lại ở việc trình bày lý thuyết, nhóm đã tìm hiểu sâu về bản chất hình học của các phép biến đổi tuyến tính. Việc sử dụng Manim để trực quan hóa đã giúp truyền tải các khái niệm trừu tượng thành các hình ảnh sinh động, góp phần nâng cao khả năng tiếp cận và hiểu rõ bản chất phép phân rã.
+
+Ở phần 3, nhóm đã tiến hành phân tích hiệu năng và độ ổn định của các thuật toán đã xây dựng thông qua thực nghiệm. Kết quả cho thấy thời gian thực thi của các phương pháp phù hợp với độ phức tạp lý thuyết, đồng thời các thuật toán trên hoạt động hiệu quả hơn trên các ma trận có điều kiện tốt (SPD) với sai số rất nhỏ. Tuy nhiên, khi áp dụng trên các ma trận điều kiện kém như Hilbert, sai số tăng đáng kể, cho thấy ảnh hưởng rõ rệt của độ điều kiện đến tính ổn định số học.
+
+\section{Khó khăn gặp phải}
+
+Một số khó khăn mà nhóm đã gặp phải trong quá trình tiến hành đồ án:
+
+\begin{itemize}[topsep=0pt, itemsep=2.5pt, leftmargin=1.5cm]
+    \item Việc sử dụng Manim để xây dựng video trực quan hóa đòi hỏi khá nhiều thời gian để học cách sử dụng và đồng bộ giữa toán học và animation.
+    \item Các vấn đề giải quyết chưa rõ ràng do số lượng tài liệu tham khảo còn hạn chế đối với một số nội dung như thuật toán tìm trị riêng Jacobi.
+    \item Việc kiểm soát sai số số học và so sánh kết quả với Numpy không phải lúc nào cũng dễ dàng.
+\end{itemize}
+
+\newpage
+
+\section{Bài học rút ra}
+
+Thông qua đồ án, nhóm đã hiểu sâu hơn bản chất của các thuật toán đại số tuyến tính thông qua việc tự cài đặt và kiểm chứng với các thư viện chuẩn. Các khái niệm như không gian vector, hạng ma trận hay SVD trở nên trực quan hơn khi được biểu diễn bằng hình học. Việc sử dụng Manim cũng cho thấy vai trò quan trọng của trực quan hóa trong việc tiếp cận các khái niệm trừu tượng. Ngoài ra, nhóm nhận thức rõ tầm quan trọng của độ ổn định số học và các kỹ thuật như pivoting trong việc đảm bảo tính chính xác của thuật toán.
